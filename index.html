@@ -20,14 +20,7 @@
   .nav-label .day { font-size: 15px; font-weight: 500; }
   .nav-label .count { font-size: 12px; color: #666; }
   .filters { display: flex; gap: 8px; margin-bottom: 1.25rem; }
-  .filter-btn { flex: 1; padding: 0.6rem 0; border-radius: 10px; cursor: pointer; border: none; background: transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
-  .filter-btn.active { border: 2px solid; }
-  .pill { border-radius: 10px; width: 74px; height: 74px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
-  .pill .emoji { font-size: 22px; }
-  .pill .num { font-size: 11px; font-weight: 500; line-height: 1; }
-  .active-inner { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; width: 100%; }
-  .active-inner .emoji { font-size: 22px; }
-  .active-inner .num { font-size: 11px; font-weight: 500; line-height: 1; }
+  .filter-btn { flex: 1; padding: 0; border-radius: 10px; cursor: pointer; border: none; background: transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; outline: none; -webkit-tap-highlight-color: transparent; }
   .timeline { display: flex; flex-direction: column; gap: 4px; }
   .empty { text-align: center; padding: 2.5rem 0; color: #888; font-size: 14px; }
   .event-row { display: flex; align-items: center; gap: 10px; background: #fff; border: 0.5px solid #e0e0e0; border-radius: 10px; padding: 0.55rem 0.9rem; }
@@ -73,10 +66,7 @@ const ACTIONS = [
 ];
 const actionMap = Object.fromEntries(ACTIONS.map(a => [a.id, a]));
 
-let events = [];
-let daysAgo = 0;
-let filter = null;
-let refreshTimer = null;
+let events = [], daysAgo = 0, filter = null;
 
 function dateKey(n) {
   const d = new Date(); d.setDate(d.getDate() - n); return d.toISOString().slice(0,10);
@@ -132,19 +122,22 @@ function render() {
   document.getElementById("btn-back").disabled = daysAgo >= 6;
   document.getElementById("btn-fwd").disabled = daysAgo <= 0;
 
-  // filters
   document.getElementById("filters").innerHTML = ACTIONS.map(a => {
     const active = filter === a.id;
-    return `<button class="filter-btn ${active ? "active" : ""}" onclick="toggleFilter('${a.id}')"
-      style="border-color:${active ? a.border : "transparent"}; background:transparent;">
+    return `<button class="filter-btn" onclick="toggleFilter('${a.id}')">
       ${active
-        ? `<div class="active-inner"><span class="emoji">${a.emoji}</span><span class="num" style="color:${a.color}">${counts[a.id]}</span></div>`
-        : `<span class="pill" style="background:${a.bg}; border:1.5px solid ${a.border}"><span class="emoji">${a.emoji}</span><span class="num" style="color:${a.color}">${counts[a.id]}</span></span>`
+        ? `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:0.6rem 0;">
+             <span style="font-size:22px">${a.emoji}</span>
+             <span style="font-size:11px;font-weight:500;color:${a.color}">${counts[a.id]}</span>
+           </div>`
+        : `<div style="background:${a.bg};border:1.5px solid ${a.border};border-radius:10px;width:74px;height:74px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;">
+             <span style="font-size:22px">${a.emoji}</span>
+             <span style="font-size:11px;font-weight:500;color:${a.color}">${counts[a.id]}</span>
+           </div>`
       }
     </button>`;
   }).join("");
 
-  // timeline
   const tl = document.getElementById("timeline");
   if (!visible.length) {
     tl.innerHTML = `<div class="empty">No events${filter ? " for " + actionMap[filter].label.toLowerCase() : " this day"}</div>`;
