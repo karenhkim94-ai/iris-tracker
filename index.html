@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Iris Daily Log</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f9f9f7; color: #1a1a1a; }
+  .wrap { max-width: 500px; margin: 0 auto; padding: 1.5rem 1rem; }
+  .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
+  .header-left { display: flex; align-items: center; gap: 8px; }
+  .header h1 { font-size: 18px; font-weight: 500; }
+  .btn-refresh { background: none; border: 0.5px solid #ccc; border-radius: 8px; cursor: pointer; padding: 4px 10px; font-size: 12px; color: #666; }
+  .error { background: #FCEBEB; border: 1px solid #F09595; border-radius: 10px; padding: 0.6rem 1rem; margin-bottom: 1rem; font-size: 13px; color: #A32D2D; }
+  .nav { display: flex; align-items: center; justify-content: space-between; background: #f1efe8; border-radius: 12px; padding: 0.6rem 1rem; margin-bottom: 1.25rem; }
+  .nav button { background: none; border: none; cursor: pointer; font-size: 20px; padding: 0 4px; color: #1a1a1a; }
+  .nav button:disabled { color: #bbb; cursor: default; }
+  .nav-label { text-align: center; }
+  .nav-label .day { font-size: 15px; font-weight: 500; }
+  .nav-label .count { font-size: 12px; color: #666; }
+  .filters { display: flex; gap: 8px; margin-bottom: 1.25rem; }
+  .filter-btn { flex: 1; padding: 0.6rem 0; border-radius: 10px; cursor: pointer; border: 1px solid #ddd; background: transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
+  .filter-btn.active { border-width: 2px; }
+  .pill { border-radius: 10px; width: 74px; height: 74px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
+  .pill .emoji { font-size: 22px; }
+  .pill .num { font-size: 11px; font-weight: 500; line-height: 1; }
+  .active-inner { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; width: 100%; }
+  .active-inner .emoji { font-size: 22px; }
+  .active-inner .num { font-size: 11px; font-weight: 500; line-height: 1; }
+  .timeline { display: flex; flex-direction: column; gap: 4px; }
+  .empty { text-align: center; padding: 2.5rem 0; color: #888; font-size: 14px; }
+  .event-row { display: flex; align-items: center; gap: 10px; background: #fff; border: 0.5px solid #e0e0e0; border-radius: 10px; padding: 0.55rem 0.9rem; }
+  .event-icon { font-size: 16px; border-radius: 7px; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .event-label { flex: 1; font-size: 14px; font-weight: 500; }
+  .event-time { font-size: 12px; color: #888; }
+  .btn-remove { background: none; border: none; cursor: pointer; color: #aaa; font-size: 15px; padding: 0 2px; line-height: 1; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <div class="header-left">
+      <span style="font-size:24px">🐾</span>
+      <h1>Iris</h1>
+    </div>
+    <button class="btn-refresh" onclick="fetchEvents()">Refresh</button>
+  </div>
+
+  <div id="error" class="error" style="display:none"></div>
+
+  <div class="nav">
+    <button id="btn-back" onclick="goBack()">‹</button>
+    <div class="nav-label">
+      <div class="day" id="day-label">Today</div>
+      <div class="count" id="day-count">Loading…</div>
+    </div>
+    <button id="btn-fwd" onclick="goForward()" disabled>›</button>
+  </div>
+
+  <div class="filters" id="filters"></div>
+  <div id="timeline"></div>
+</div>
+
+<script>
+const SUPABASE_URL = "https://cvhntedxgzpwxlhehuck.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2aG50ZWR4Z3pwd3hsaGVodWNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwMjA5NDksImV4cCI6MjA5NTU5Njk0OX0.MLA6nZpN_WbLqslX5z9SYiq31tLeRYzWJoeVBxKp2rY";
+
+const ACTIONS = [
+  { id:"fed",    label:"Fed",    emoji:"🍖", color:"#BA7517", bg:"#FAEEDA", border:"#EF9F27" },
+  { id:"peed",   label:"Peed",   emoji:"💧", color:"#185FA5", bg:"#E6F1FB", border:"#378ADD" },
+  { id:"pooped", label:"Pooped", emoji:"💩", color:"#3B6D11", bg:"#EAF3DE", border:"#639922" },
+];
+const actionMap = Object.fromEntries(ACTIONS.map(a => [a.id, a]));
+
+let events = [];
+let daysAgo = 0;
+let filter = null;
+let refreshTimer = null;
+
+function dateKey(n) {
+  const d = new Date(); d.setDate(d.getDate() - n); return d.toISOString().slice(0,10);
+}
+function fmtDayLabel(n) {
+  if (n === 0) return "Today";
+  if (n === 1) return "Yesterday";
+  const d = new Date(); d.setDate(d.getDate() - n);
+  return d.toLocaleDateString("en-US", { weekday:"long", month:"short", day:"numeric" });
+}
+function fmtTime(ts) {
+  return new Date(ts).toLocaleTimeString("en-US", { hour:"numeric", minute:"2-digit", hour12:true });
+}
+
+async function fetchEvents() {
+  const from = new Date(); from.setDate(from.getDate() - 6); from.setHours(0,0,0,0);
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/events?select=*&created_at=gte.${from.toISOString()}&order=created_at.asc`,
+      { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, Accept: "application/json" } }
+    );
+    if (!res.ok) throw new Error(await res.text());
+    events = await res.json();
+    document.getElementById("error").style.display = "none";
+  } catch(e) {
+    document.getElementById("error").textContent = "Couldn't load events. Check your connection.";
+    document.getElementById("error").style.display = "block";
+  }
+  render();
+}
+
+async function removeEvent(id) {
+  events = events.filter(e => e.id !== id);
+  render();
+  await fetch(`${SUPABASE_URL}/rest/v1/events?id=eq.${id}`, {
+    method: "DELETE",
+    headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
+  });
+}
+
+function goBack()    { if (daysAgo < 6) { daysAgo++; filter = null; render(); } }
+function goForward() { if (daysAgo > 0) { daysAgo--; filter = null; render(); } }
+function toggleFilter(id) { filter = filter === id ? null : id; render(); }
+
+function render() {
+  const cur = dateKey(daysAgo);
+  const allToday = events.filter(e => e.created_at.slice(0,10) === cur).sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+  const visible = filter ? allToday.filter(e => e.action === filter) : allToday;
+  const counts = Object.fromEntries(ACTIONS.map(a => [a.id, allToday.filter(e => e.action === a.id).length]));
+
+  document.getElementById("day-label").textContent = fmtDayLabel(daysAgo);
+  document.getElementById("day-count").textContent = `${allToday.length} events`;
+  document.getElementById("btn-back").disabled = daysAgo >= 6;
+  document.getElementById("btn-fwd").disabled = daysAgo <= 0;
+
+  // filters
+  document.getElementById("filters").innerHTML = ACTIONS.map(a => {
+    const active = filter === a.id;
+    return `<button class="filter-btn ${active ? "active" : ""}" onclick="toggleFilter('${a.id}')"
+      style="border-color:${active ? a.border : "#ddd"}; background:${active ? a.bg : "transparent"};">
+      ${active
+        ? `<div class="active-inner"><span class="emoji">${a.emoji}</span><span class="num" style="color:${a.color}">${counts[a.id]}</span></div>`
+        : `<span class="pill" style="background:${a.bg}; border:1.5px solid ${a.border}"><span class="emoji">${a.emoji}</span><span class="num" style="color:${a.color}">${counts[a.id]}</span></span>`
+      }
+    </button>`;
+  }).join("");
+
+  // timeline
+  const tl = document.getElementById("timeline");
+  if (!visible.length) {
+    tl.innerHTML = `<div class="empty">No events${filter ? " for " + actionMap[filter].label.toLowerCase() : " this day"}</div>`;
+    return;
+  }
+  tl.innerHTML = visible.map(e => {
+    const a = actionMap[e.action]; if (!a) return "";
+    return `<div class="event-row">
+      <span class="event-icon" style="background:${a.bg}">${a.emoji}</span>
+      <span class="event-label" style="color:${a.color}">${a.label}</span>
+      <span class="event-time">${fmtTime(e.created_at)}</span>
+      <button class="btn-remove" onclick="removeEvent('${e.id}')">×</button>
+    </div>`;
+  }).join("");
+}
+
+fetchEvents();
+setInterval(fetchEvents, 15000);
+</script>
+</body>
+</html>
