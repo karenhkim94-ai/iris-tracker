@@ -136,7 +136,7 @@ function render() {
   document.getElementById("filters").innerHTML = ACTIONS.map(a => {
     const active = filter === a.id;
     return `<button class="filter-btn ${active ? "active" : ""}" onclick="toggleFilter('${a.id}')"
-      style="border-color:${active ? a.border : "#ddd"}; background:${active ? a.bg : "transparent"};">
+      style="border-color:${active ? a.border : "transparent"}; background:transparent;">
       ${active
         ? `<div class="active-inner"><span class="emoji">${a.emoji}</span><span class="num" style="color:${a.color}">${counts[a.id]}</span></div>`
         : `<span class="pill" style="background:${a.bg}; border:1.5px solid ${a.border}"><span class="emoji">${a.emoji}</span><span class="num" style="color:${a.color}">${counts[a.id]}</span></span>`
