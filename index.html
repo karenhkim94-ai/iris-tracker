@@ -109,7 +109,8 @@ function buildRows(evts, activeFilter) {
     const eG = !activeFilter && (e.action === "peed" || e.action === "pooped");
     const nG = next && (next.action === "peed" || next.action === "pooped");
     if (eG && nG && (new Date(next.created_at) - new Date(e.created_at)) <= 60000) {
-      rows.push([e, next].sort((a,b) => a.action === "peed" ? -1 : 1));
+      const pair = [e, next].sort((a,b) => a.action === "peed" ? -1 : 1);
+      rows.push(pair);
       used.add(e.id);
       used.add(next.id);
     } else {
@@ -184,7 +185,7 @@ function render() {
 
   const tl = document.getElementById("timeline");
   if (!allToday.length) {
-    tl.innerHTML = `<div class="empty">No events${filter ? " for " + actionMap[filter].label.toLowerCase() : " this day"}</div>`;
+    tl.innerHTML = `<div class="empty">No events this day</div>`;
     return;
   }
 
@@ -200,7 +201,7 @@ function render() {
     if (!rows.length) return;
     hasVisible = true;
     html += `<div class="hour-label">${block.label}</div>`;
-    rows.forEach((row, ri) => {
+    rows.forEach(row => {
       if (row.length === 1) {
         const e = row[0]; const a = actionMap[e.action]; if (!a) return;
         let sub = "";
@@ -222,7 +223,7 @@ function render() {
             ${row.map(e => `<span class="event-icon" style="background:${actionMap[e.action].bg}">${actionMap[e.action].emoji}</span>`).join("")}
           </div>
           <span class="event-label" style="display:flex;align-items:center">
-            ${row.map((e, i) => `${i > 0 ? '<span style="color:#333;font-size:9px;margin:0 6px">+</span>' : ''}<span style="color:${actionMap[e.action].color}">${actionMap[e.action].label}</span>`).join("")}
+            ${row.map((e,i) => `${i > 0 ? '<span style="color:#333;font-size:9px;margin:0 6px">+</span>' : ''}<span style="color:${actionMap[e.action].color}">${actionMap[e.action].label}</span>`).join("")}
           </span>
           <span class="event-time">${fmtTime(row[0].created_at)}</span>
           <button class="btn-remove" onclick="removeEvents(${ids})">×</button>
@@ -231,7 +232,7 @@ function render() {
     });
   });
 
-  tl.innerHTML = hasVisible ? html : `<div class="empty">No events for ${actionMap[filter]?.label.toLowerCase()}</div>`;
+  tl.innerHTML = hasVisible ? html : `<div class="empty">No events${filter ? " for " + actionMap[filter]?.label.toLowerCase() : " this day"}</div>`;
 }
 
 // Swipe on nav
@@ -263,24 +264,18 @@ ws.onmessage = (msg) => {
 };
 ws.onclose = () => setTimeout(fetchEvents, 5000);
 
- // Register service worker and request push permission
+// Service worker + push notifications
 async function initPush() {
   if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
-
   try {
     const reg = await navigator.serviceWorker.register("/iris-tracker/sw.js");
-    console.log("SW registered");
-
     const permission = await Notification.requestPermission();
     if (permission !== "granted") return;
-
-    // Store subscription in Supabase
     const existing = await reg.pushManager.getSubscription();
     const sub = existing || await reg.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array("YOUR_VAPID_PUBLIC_KEY")
+      applicationServerKey: urlBase64ToUint8Array("BGPkobvdvjVn_YvVfpl4I7W5mlTHq1CCKmyu763MayupsPNhPtXEH-i0E6WUUHX72sfG5xqZ9JV7KsODtWYhpbU")
     });
-
     await fetch(`${SUPABASE_URL}/rest/v1/subscriptions`, {
       method: "POST",
       headers: {
@@ -291,8 +286,6 @@ async function initPush() {
       },
       body: JSON.stringify({ endpoint: sub.endpoint, subscription: JSON.stringify(sub) })
     });
-
-    console.log("Push subscription saved");
   } catch(e) {
     console.error("Push init failed", e);
   }
