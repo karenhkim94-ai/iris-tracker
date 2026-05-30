@@ -248,21 +248,25 @@ navEl.addEventListener("touchend", e => {
 
 fetchEvents();
 
-const ws = new WebSocket(`wss://cvhntedxgzpwxlhehuck.supabase.co/realtime/v1/websocket?apikey=${SUPABASE_KEY}&vsn=1.0.0`);
-ws.onopen = () => {
-  ws.send(JSON.stringify({ topic: "realtime:public:events", event: "phx_join", payload: {}, ref: "1" }));
-};
-ws.onmessage = (msg) => {
-  const data = JSON.parse(msg.data);
-  if (data.event === "INSERT") {
-    events.push(data.payload.record);
-    render();
-  } else if (data.event === "DELETE") {
-    events = events.filter(e => e.id !== data.payload.old_record.id);
-    render();
-  }
-};
-ws.onclose = () => setTimeout(fetchEvents, 5000);
+// WebSocket with auto-reconnect
+function connectWS() {
+  const ws = new WebSocket(`wss://cvhntedxgzpwxlhehuck.supabase.co/realtime/v1/websocket?apikey=${SUPABASE_KEY}&vsn=1.0.0`);
+  ws.onopen = () => {
+    ws.send(JSON.stringify({ topic: "realtime:public:events", event: "phx_join", payload: {}, ref: "1" }));
+  };
+  ws.onmessage = (msg) => {
+    const data = JSON.parse(msg.data);
+    if (data.event === "INSERT") { events.push(data.payload.record); render(); }
+    else if (data.event === "DELETE") { events = events.filter(e => e.id !== data.payload.old_record.id); render(); }
+  };
+  ws.onclose = () => setTimeout(connectWS, 3000);
+  ws.onerror = () => ws.close();
+}
+
+// Also poll every 10 seconds as fallback
+setInterval(fetchEvents, 10000);
+
+connectWS();
 
 // Service worker + push notifications
 async function initPush() {
