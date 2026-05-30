@@ -286,8 +286,9 @@ async function initPush() {
       },
       body: JSON.stringify({ endpoint: sub.endpoint, subscription: JSON.stringify(sub) })
     });
+    console.log("Push ready");
   } catch(e) {
-    console.error("Push init failed", e);
+    console.warn("Push init failed (non-fatal):", e);
   }
 }
 
@@ -298,7 +299,7 @@ function urlBase64ToUint8Array(base64String) {
   return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
 }
 
-initPush();
+window.addEventListener("load", () => setTimeout(initPush, 1000));
 </script>
 </body>
 </html>
