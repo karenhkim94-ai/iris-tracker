@@ -73,7 +73,12 @@ const TIME_BLOCKS = [
   { label:"12 AM – 6 AM", start:0,  end:6  },
 ];
 
-let events = [], daysAgo = 0, filter = null;
+let rowMap = {};
+
+function removeRow(key) {
+  const ids = rowMap[key];
+  if (ids) removeEvents(ids);
+}
 
 function dateKey(n) {
   const d = new Date(); d.setDate(d.getDate() - n);
@@ -212,7 +217,8 @@ function render() {
           <button class="btn-remove" onclick="removeEvent('${e.id}')">×</button>
         </div>`;
       } else {
-        const idsAttr = row.map(e => `'${e.id}'`).join(",");
+        const key = `row_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+        rowMap[key] = row.map(e => e.id);
         html += `<div class="event-row">
           <div style="display:flex;gap:4px;flex-shrink:0">
             ${row.map(e => `<span class="event-icon" style="background:${actionMap[e.action].bg}">${actionMap[e.action].emoji}</span>`).join("")}
@@ -221,7 +227,7 @@ function render() {
             ${row.map((e,i) => `${i > 0 ? '<span style="color:#333;font-size:9px;margin:0 6px">+</span>' : ''}<span style="color:${actionMap[e.action].color}">${actionMap[e.action].label}</span>`).join("")}
           </span>
           <span class="event-time">${fmtTime(row[0].created_at)}</span>
-          <button class="btn-remove" onclick="removeEvents([${idsAttr}])">×</button>
+          <button class="btn-remove" onclick="removeRow('${key}')">×</button>
         </div>`;
       }
     });
