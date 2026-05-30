@@ -73,7 +73,7 @@ const TIME_BLOCKS = [
   { label:"12 AM – 6 AM", start:0,  end:6  },
 ];
 
-let rowMap = {};
+let events = [], daysAgo = 0, filter = null, rowMap = {};
 
 function removeRow(key) {
   const ids = rowMap[key];
@@ -163,6 +163,7 @@ function goForward() { if (daysAgo > 0) { daysAgo--; filter = null; render(); } 
 function toggleFilter(id) { filter = filter === id ? null : id; render(); }
 
 function render() {
+  rowMap = {};
   const cur = dateKey(daysAgo);
   const allToday = events.filter(e => localDateStr(e.created_at) === cur).sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
   const counts = Object.fromEntries(ACTIONS.map(a => [a.id, allToday.filter(e => e.action === a.id).length]));
@@ -189,8 +190,7 @@ function render() {
     return;
   }
 
-  let html = "";
-  let hasVisible = false;
+  let html = "", hasVisible = false, rowIdx = 0;
   TIME_BLOCKS.forEach(block => {
     const blockEvts = allToday.filter(e => {
       const h = new Date(e.created_at).getHours();
@@ -217,7 +217,7 @@ function render() {
           <button class="btn-remove" onclick="removeEvent('${e.id}')">×</button>
         </div>`;
       } else {
-        const key = `row_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+        const key = `r${rowIdx++}`;
         rowMap[key] = row.map(e => e.id);
         html += `<div class="event-row">
           <div style="display:flex;gap:4px;flex-shrink:0">
@@ -249,7 +249,6 @@ navEl.addEventListener("touchend", e => {
 
 fetchEvents();
 
-// WebSocket with auto-reconnect
 function connectWS() {
   const ws = new WebSocket(`wss://cvhntedxgzpwxlhehuck.supabase.co/realtime/v1/websocket?apikey=${SUPABASE_KEY}&vsn=1.0.0`);
   ws.onopen = () => {
@@ -266,7 +265,6 @@ function connectWS() {
 setInterval(fetchEvents, 5000);
 connectWS();
 
-// Service worker + push notifications
 async function initPush() {
   if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
   try {
