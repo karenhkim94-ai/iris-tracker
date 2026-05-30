@@ -15,7 +15,7 @@
   .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
   .header-left { display: flex; align-items: center; gap: 8px; }
   .header h1 { font-size: 18px; font-weight: 500; }
-  .btn-refresh { background: none; border: 0.5px solid #ccc; border-radius: 8px; cursor: pointer; padding: 4px 10px; font-size: 12px; color: #666; }
+  .header-right { font-size: 13px; color: #555; font-weight: 300; }
   .error { background: #FCEBEB; border: 1px solid #F09595; border-radius: 10px; padding: 0.6rem 1rem; margin-bottom: 1rem; font-size: 13px; color: #A32D2D; }
   .nav { display: flex; align-items: center; justify-content: space-between; background: #f1efe8; border-radius: 12px; padding: 0.6rem 1rem; margin-bottom: 1.25rem; }
   .nav button { background: none; border: none; cursor: pointer; font-size: 20px; padding: 0 4px; color: #1a1a1a; }
@@ -25,12 +25,13 @@
   .nav-label .count { font-size: 12px; color: #666; }
   .filters { display: flex; gap: 8px; margin-bottom: 1.25rem; }
   .filter-btn { flex: 1; padding: 0; border-radius: 10px; cursor: pointer; border: none; background: transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; outline: none; -webkit-tap-highlight-color: transparent; }
-  .timeline { display: flex; flex-direction: column; gap: 4px; }
+  .timeline { display: flex; flex-direction: column; }
+  .hour-label { font-size: 14px; font-weight: 600; color: #444; padding: 12px 0 6px; letter-spacing: 0.02em; }
   .empty { text-align: center; padding: 2.5rem 0; color: #888; font-size: 14px; }
-  .event-row { display: flex; align-items: center; gap: 10px; background: #fff; border: 0.5px solid #e0e0e0; border-radius: 10px; padding: 0.55rem 0.9rem; }
+  .event-row { display: flex; align-items: center; gap: 10px; background: #fff; border: 0.5px solid #e0e0e0; border-radius: 10px; padding: 0.55rem 0.9rem; margin-bottom: 4px; }
   .event-icon { font-size: 16px; border-radius: 7px; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
   .event-label { flex: 1; font-size: 14px; font-weight: 500; }
-  .event-time { font-size: 12px; color: #888; }
+  .event-time { font-size: 12px; color: #555; }
   .btn-remove { background: none; border: none; cursor: pointer; color: #aaa; font-size: 15px; padding: 0 2px; line-height: 1; }
 </style>
 </head>
@@ -41,7 +42,7 @@
       <span style="font-size:24px">🐾</span>
       <h1>Iris</h1>
     </div>
-    <button class="btn-refresh" onclick="fetchEvents()">Refresh</button>
+    <span class="header-right">coded by karen</span>
   </div>
 
   <div id="error" class="error" style="display:none"></div>
@@ -70,23 +71,33 @@ const ACTIONS = [
 ];
 const actionMap = Object.fromEntries(ACTIONS.map(a => [a.id, a]));
 
+const TIME_BLOCKS = [
+  { label:"9 PM – 12 AM", start:21, end:24 },
+  { label:"6 PM – 9 PM",  start:18, end:21 },
+  { label:"3 PM – 6 PM",  start:15, end:18 },
+  { label:"12 PM – 3 PM", start:12, end:15 },
+  { label:"9 AM – 12 PM", start:9,  end:12 },
+  { label:"6 AM – 9 AM",  start:6,  end:9  },
+  { label:"12 AM – 6 AM", start:0,  end:6  },
+];
+
 let events = [], daysAgo = 0, filter = null;
 
 function dateKey(n) {
   const d = new Date(); d.setDate(d.getDate() - n);
-  return d.toLocaleDateString("en-CA", { timeZone: "America/Los_Angeles" });
+  return d.toLocaleDateString("en-CA");
 }
 function localDateStr(ts) {
-  return new Date(ts).toLocaleDateString("en-CA", { timeZone: "America/Los_Angeles" });
+  return new Date(ts).toLocaleDateString("en-CA");
 }
 function fmtDayLabel(n) {
   if (n === 0) return "Today";
   if (n === 1) return "Yesterday";
   const d = new Date(); d.setDate(d.getDate() - n);
-  return d.toLocaleDateString("en-US", { timeZone: "America/Los_Angeles", weekday:"long", month:"short", day:"numeric" });
+  return d.toLocaleDateString("en-US", { weekday:"long", month:"short", day:"numeric" });
 }
 function fmtTime(ts) {
-  return new Date(ts).toLocaleTimeString("en-US", { timeZone: "America/Los_Angeles", hour:"numeric", minute:"2-digit", hour12:true });
+  return new Date(ts).toLocaleTimeString("en-US", { hour:"numeric", minute:"2-digit", hour12:true });
 }
 
 async function fetchEvents() {
@@ -131,36 +142,43 @@ function render() {
   document.getElementById("btn-back").disabled = daysAgo >= 6;
   document.getElementById("btn-fwd").disabled = daysAgo <= 0;
 
+  // Filter pills
   document.getElementById("filters").innerHTML = ACTIONS.map(a => {
     const active = filter === a.id;
     return `<button class="filter-btn" onclick="toggleFilter('${a.id}')">
-      ${active
-        ? `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:0.6rem 0;">
-             <span style="font-size:22px">${a.emoji}</span>
-             <span style="font-size:11px;font-weight:500;color:${a.color}">${counts[a.id]}</span>
-           </div>`
-        : `<div style="background:${a.bg};border:1.5px solid ${a.border};border-radius:10px;width:74px;height:74px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;">
-             <span style="font-size:22px">${a.emoji}</span>
-             <span style="font-size:11px;font-weight:500;color:${a.color}">${counts[a.id]}</span>
-           </div>`
-      }
+      <div style="background:${a.bg};border:${active ? `2.5px solid ${a.border}` : `1.5px solid ${a.border}`};border-radius:12px;width:90px;height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;margin:0 auto;">
+        <span style="font-size:26px">${a.emoji}</span>
+        <span style="font-size:12px;font-weight:500;color:${a.color}">${counts[a.id]}</span>
+      </div>
     </button>`;
   }).join("");
 
+  // Timeline grouped by time blocks
   const tl = document.getElementById("timeline");
   if (!visible.length) {
     tl.innerHTML = `<div class="empty">No events${filter ? " for " + actionMap[filter].label.toLowerCase() : " this day"}</div>`;
     return;
   }
-  tl.innerHTML = visible.map(e => {
-    const a = actionMap[e.action]; if (!a) return "";
-    return `<div class="event-row">
-      <span class="event-icon" style="background:${a.bg}">${a.emoji}</span>
-      <span class="event-label" style="color:${a.color}">${a.label}</span>
-      <span class="event-time">${fmtTime(e.created_at)}</span>
-      <button class="btn-remove" onclick="removeEvent('${e.id}')">×</button>
-    </div>`;
-  }).join("");
+
+  let html = "";
+  TIME_BLOCKS.forEach(block => {
+    const blockEvents = visible.filter(e => {
+      const h = new Date(e.created_at).getHours();
+      return h >= block.start && h < block.end;
+    });
+    if (!blockEvents.length) return;
+    html += `<div class="hour-label">${block.label}</div>`;
+    blockEvents.forEach(e => {
+      const a = actionMap[e.action]; if (!a) return;
+      html += `<div class="event-row">
+        <span class="event-icon" style="background:${a.bg}">${a.emoji}</span>
+        <span class="event-label" style="color:${a.color}">${a.label}</span>
+        <span class="event-time">${fmtTime(e.created_at)}</span>
+        <button class="btn-remove" onclick="removeEvent('${e.id}')">×</button>
+      </div>`;
+    });
+  });
+  tl.innerHTML = html;
 }
 
 fetchEvents();
