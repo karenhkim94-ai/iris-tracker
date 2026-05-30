@@ -38,6 +38,7 @@
   <div class="header">
     <span style="font-size:24px">🐾</span>
     <h1>Iris's Daily Tracker</h1>
+    <button onclick="initPush()" id="notify-btn" style="background:none;border:0.5px solid #ccc;border-radius:8px;padding:4px 10px;font-size:11px;color:#666;cursor:pointer;margin-left:auto">🔔</button>
   </div>
 
   <div id="error" class="error" style="display:none"></div>
@@ -287,6 +288,8 @@ async function initPush() {
       body: JSON.stringify({ endpoint: sub.endpoint, subscription: JSON.stringify(sub) })
     });
     console.log("Push ready");
+    document.getElementById("notify-btn").textContent = "🔔✓";
+    document.getElementById("notify-btn").style.color = "#3B6D11";
   } catch(e) {
     console.warn("Push init failed (non-fatal):", e);
   }
@@ -299,7 +302,10 @@ function urlBase64ToUint8Array(base64String) {
   return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
 }
 
-window.addEventListener("load", () => setTimeout(initPush, 1000));
+window.addEventListener("load", () => setTimeout(() => {
+  // Only auto-init if already granted
+  if (Notification.permission === "granted") initPush();
+}, 1000));
 </script>
 </body>
 </html>
