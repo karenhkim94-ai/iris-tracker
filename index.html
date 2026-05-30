@@ -262,6 +262,50 @@ ws.onmessage = (msg) => {
   }
 };
 ws.onclose = () => setTimeout(fetchEvents, 5000);
+
+ // Register service worker and request push permission
+async function initPush() {
+  if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
+
+  try {
+    const reg = await navigator.serviceWorker.register("/iris-tracker/sw.js");
+    console.log("SW registered");
+
+    const permission = await Notification.requestPermission();
+    if (permission !== "granted") return;
+
+    // Store subscription in Supabase
+    const existing = await reg.pushManager.getSubscription();
+    const sub = existing || await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array("YOUR_VAPID_PUBLIC_KEY")
+    });
+
+    await fetch(`${SUPABASE_URL}/rest/v1/subscriptions`, {
+      method: "POST",
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${SUPABASE_KEY}`,
+        "Content-Type": "application/json",
+        Prefer: "resolution=merge-duplicates"
+      },
+      body: JSON.stringify({ endpoint: sub.endpoint, subscription: JSON.stringify(sub) })
+    });
+
+    console.log("Push subscription saved");
+  } catch(e) {
+    console.error("Push init failed", e);
+  }
+}
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = "=".repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const raw = atob(base64);
+  return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
+}
+
+initPush();
 </script>
 </body>
 </html>
