@@ -191,8 +191,8 @@ navEl.addEventListener("touchstart", e => { touchStartX = e.touches[0].clientX; 
 navEl.addEventListener("touchend", e => {
   const diff = touchStartX - e.changedTouches[0].clientX;
   if (Math.abs(diff) < 40) return;
-  if (diff > 0 && daysAgo < 6) { daysAgo++; filter = null; render(); }
-  else if (diff < 0 && daysAgo > 0) { daysAgo--; filter = null; render(); }
+  if (diff > 0 && daysAgo > 0) { daysAgo--; filter = null; render(); }
+  else if (diff < 0 && daysAgo < 6) { daysAgo++; filter = null; render(); }
 });
 
 fetchEvents();
