@@ -146,9 +146,9 @@ function render() {
   document.getElementById("filters").innerHTML = ACTIONS.map(a => {
     const active = filter === a.id;
     return `<button class="filter-btn" onclick="toggleFilter('${a.id}')">
-      <div style="background:${a.bg};border:${active ? `3px solid ${a.border}` : `1.5px solid ${a.border}`};border-radius:12px;width:90px;height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;margin:0 auto;">
+      <div style="background:${a.bg};border:${active ? `2.5px solid ${a.border}` : `1.5px solid ${a.border}`};border-radius:12px;width:90px;height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;margin:0 auto;">
         <span style="font-size:26px">${a.emoji}</span>
-        <span style="font-size:12px;font-weight:${active ? 700 : 500};color:${a.color}">${counts[a.id]}</span>
+        <span style="font-size:12px;font-weight:500;color:${a.color}">${counts[a.id]}</span>
       </div>
     </button>`;
   }).join("");
@@ -170,16 +170,9 @@ function render() {
     html += `<div class="hour-label">${block.label}</div>`;
     blockEvents.forEach(e => {
       const a = actionMap[e.action]; if (!a) return;
-      const fedEvents = allToday.filter(e => e.action === "fed").sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
-      let sublabel = "";
-      if (e.action === "fed") {
-        const idx = fedEvents.findIndex(f => f.id === e.id);
-        if (idx === 0) sublabel = " · Breakfast";
-        else if (idx === 1) sublabel = " · Dinner";
-      }
       html += `<div class="event-row">
         <span class="event-icon" style="background:${a.bg}">${a.emoji}</span>
-        <span class="event-label" style="color:${a.color}">${a.label}${sublabel}</span>
+        <span class="event-label" style="color:${a.color}">${a.label}</span>
         <span class="event-time">${fmtTime(e.created_at)}</span>
         <button class="btn-remove" onclick="removeEvent('${e.id}')">×</button>
       </div>`;
