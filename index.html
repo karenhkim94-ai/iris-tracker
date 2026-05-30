@@ -97,6 +97,29 @@ function fmtTime(ts) {
   return new Date(ts).toLocaleTimeString("en-US", { hour:"numeric", minute:"2-digit", hour12:true });
 }
 
+function buildRows(evts, activeFilter) {
+  const filtered = activeFilter ? evts.filter(e => e.action === activeFilter) : evts;
+  const sorted = filtered.slice().sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
+  const used = new Set();
+  const rows = [];
+  for (let i = 0; i < sorted.length; i++) {
+    const e = sorted[i];
+    if (used.has(e.id)) continue;
+    const next = sorted.slice(i+1).find(n => !used.has(n.id));
+    const eG = !activeFilter && (e.action === "peed" || e.action === "pooped");
+    const nG = next && (next.action === "peed" || next.action === "pooped");
+    if (eG && nG && (new Date(next.created_at) - new Date(e.created_at)) <= 60000) {
+      rows.push([e, next]);
+      used.add(e.id);
+      used.add(next.id);
+    } else {
+      rows.push([e]);
+      used.add(e.id);
+    }
+  }
+  return rows.reverse();
+}
+
 async function fetchEvents() {
   const from = new Date(); from.setDate(from.getDate() - 6); from.setHours(0,0,0,0);
   try {
@@ -124,15 +147,25 @@ async function removeEvent(id) {
   await fetchEvents();
 }
 
+async function removeEvents(ids) {
+  events = events.filter(e => !ids.includes(e.id));
+  render();
+  await Promise.all(ids.map(id => fetch(`${SUPABASE_URL}/rest/v1/events?id=eq.${id}`, {
+    method: "DELETE",
+    headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
+  })));
+  await fetchEvents();
+}
+
 function goBack()    { if (daysAgo < 6) { daysAgo++; filter = null; render(); } }
 function goForward() { if (daysAgo > 0) { daysAgo--; filter = null; render(); } }
 function toggleFilter(id) { filter = filter === id ? null : id; render(); }
 
 function render() {
   const cur = dateKey(daysAgo);
-  const allToday = events.filter(e => localDateStr(e.created_at) === cur).sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
-  const visible = filter ? allToday.filter(e => e.action === filter) : allToday;
+  const allToday = events.filter(e => localDateStr(e.created_at) === cur).sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
   const counts = Object.fromEntries(ACTIONS.map(a => [a.id, allToday.filter(e => e.action === a.id).length]));
+  const fedEvents = allToday.filter(e => e.action === "fed");
 
   document.getElementById("day-label").textContent = fmtDayLabel(daysAgo);
   document.getElementById("day-count").textContent = `${allToday.length} events`;
@@ -150,38 +183,55 @@ function render() {
   }).join("");
 
   const tl = document.getElementById("timeline");
-  if (!visible.length) {
+  if (!allToday.length) {
     tl.innerHTML = `<div class="empty">No events${filter ? " for " + actionMap[filter].label.toLowerCase() : " this day"}</div>`;
     return;
   }
 
-  const fedEvents = allToday.filter(e => e.action === "fed").sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
-
   let html = "";
+  let hasVisible = false;
   TIME_BLOCKS.forEach(block => {
-    const blockEvents = visible.filter(e => {
+    const blockEvts = allToday.filter(e => {
       const h = new Date(e.created_at).getHours();
       return h >= block.start && h < block.end;
     });
-    if (!blockEvents.length) return;
+    if (!blockEvts.length) return;
+    const rows = buildRows(blockEvts, filter);
+    if (!rows.length) return;
+    hasVisible = true;
     html += `<div class="hour-label">${block.label}</div>`;
-    blockEvents.forEach(e => {
-      const a = actionMap[e.action]; if (!a) return;
-      let sublabel = "";
-      if (e.action === "fed") {
-        const idx = fedEvents.findIndex(f => f.id === e.id);
-        if (idx === 0) sublabel = " · Breakfast";
-        else if (idx === 1) sublabel = " · Dinner";
+    rows.forEach((row, ri) => {
+      if (row.length === 1) {
+        const e = row[0]; const a = actionMap[e.action]; if (!a) return;
+        let sub = "";
+        if (e.action === "fed") {
+          const idx = fedEvents.findIndex(f => f.id === e.id);
+          if (idx === 0) sub = " · Breakfast";
+          else if (idx === 1) sub = " · Dinner";
+        }
+        html += `<div class="event-row">
+          <span class="event-icon" style="background:${a.bg}">${a.emoji}</span>
+          <span class="event-label" style="color:${a.color}">${a.label}${sub}</span>
+          <span class="event-time">${fmtTime(e.created_at)}</span>
+          <button class="btn-remove" onclick="removeEvent('${e.id}')">×</button>
+        </div>`;
+      } else {
+        const ids = JSON.stringify(row.map(e => e.id));
+        html += `<div class="event-row">
+          <div style="display:flex;gap:4px;flex-shrink:0">
+            ${row.map(e => `<span class="event-icon" style="background:${actionMap[e.action].bg}">${actionMap[e.action].emoji}</span>`).join("")}
+          </div>
+          <span class="event-label" style="display:flex;align-items:center">
+            ${row.map((e, i) => `${i > 0 ? '<span style="color:#333;font-size:9px;margin:0 6px">+</span>' : ''}<span style="color:${actionMap[e.action].color}">${actionMap[e.action].label}</span>`).join("")}
+          </span>
+          <span class="event-time">${fmtTime(row[0].created_at)}</span>
+          <button class="btn-remove" onclick="removeEvents(${ids})">×</button>
+        </div>`;
       }
-      html += `<div class="event-row">
-        <span class="event-icon" style="background:${a.bg}">${a.emoji}</span>
-        <span class="event-label" style="color:${a.color}">${a.label}${sublabel}</span>
-        <span class="event-time">${fmtTime(e.created_at)}</span>
-        <button class="btn-remove" onclick="removeEvent('${e.id}')">×</button>
-      </div>`;
     });
   });
-  tl.innerHTML = html;
+
+  tl.innerHTML = hasVisible ? html : `<div class="empty">No events for ${actionMap[filter]?.label.toLowerCase()}</div>`;
 }
 
 // Swipe on nav
