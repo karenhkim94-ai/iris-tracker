@@ -12,10 +12,8 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f9f9f7; color: #1a1a1a; }
   .wrap { max-width: 500px; margin: 0 auto; padding: 1.5rem 1rem; }
-  .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
-  .header-left { display: flex; align-items: center; gap: 8px; }
+  .header { display: flex; align-items: center; margin-bottom: 1.25rem; gap: 8px; }
   .header h1 { font-size: 18px; font-weight: 500; }
-  .header-right { font-size: 13px; color: #555; font-weight: 300; }
   .error { background: #FCEBEB; border: 1px solid #F09595; border-radius: 10px; padding: 0.6rem 1rem; margin-bottom: 1rem; font-size: 13px; color: #A32D2D; }
   .nav { display: flex; align-items: center; justify-content: space-between; background: #f1efe8; border-radius: 12px; padding: 0.6rem 1rem; margin-bottom: 1.25rem; touch-action: pan-y; user-select: none; }
   .nav button { background: none; border: none; cursor: pointer; font-size: 20px; padding: 0 4px; color: #1a1a1a; }
@@ -38,11 +36,8 @@
 <body>
 <div class="wrap">
   <div class="header">
-    <div class="header-left">
-      <span style="font-size:24px">🐾</span>
-      <h1>Iris's Daily Tracker</h1>
-    </div>
-    <span class="header-right">coded by karen</span>
+    <span style="font-size:24px">🐾</span>
+    <h1>Iris's Daily Tracker</h1>
   </div>
 
   <div id="error" class="error" style="display:none"></div>
@@ -217,7 +212,7 @@ function render() {
           <button class="btn-remove" onclick="removeEvent('${e.id}')">×</button>
         </div>`;
       } else {
-        const ids = JSON.stringify(row.map(e => e.id));
+        const idsAttr = row.map(e => `'${e.id}'`).join(",");
         html += `<div class="event-row">
           <div style="display:flex;gap:4px;flex-shrink:0">
             ${row.map(e => `<span class="event-icon" style="background:${actionMap[e.action].bg}">${actionMap[e.action].emoji}</span>`).join("")}
@@ -226,7 +221,7 @@ function render() {
             ${row.map((e,i) => `${i > 0 ? '<span style="color:#333;font-size:9px;margin:0 6px">+</span>' : ''}<span style="color:${actionMap[e.action].color}">${actionMap[e.action].label}</span>`).join("")}
           </span>
           <span class="event-time">${fmtTime(row[0].created_at)}</span>
-          <button class="btn-remove" onclick="removeEvents(${ids})">×</button>
+          <button class="btn-remove" onclick="removeEvents([${idsAttr}])">×</button>
         </div>`;
       }
     });
@@ -262,10 +257,7 @@ function connectWS() {
   ws.onclose = () => setTimeout(connectWS, 3000);
   ws.onerror = () => ws.close();
 }
-
-// Also poll every 10 seconds as fallback
 setInterval(fetchEvents, 5000);
-
 connectWS();
 
 // Service worker + push notifications
