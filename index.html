@@ -12,7 +12,7 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f9f9f7; color: #1a1a1a; }
   .wrap { max-width: 500px; margin: 0 auto; padding: 1.5rem 1rem; }
-  .header { display: flex; align-items: center; margin-bottom: 1.25rem; gap: 8px; }
+  .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; gap: 8px; }
   .header h1 { font-size: 18px; font-weight: 500; }
   .error { background: #FCEBEB; border: 1px solid #F09595; border-radius: 10px; padding: 0.6rem 1rem; margin-bottom: 1rem; font-size: 13px; color: #A32D2D; }
   .nav { display: flex; align-items: center; justify-content: space-between; background: #f1efe8; border-radius: 12px; padding: 0.6rem 1rem; margin-bottom: 1.25rem; touch-action: pan-y; user-select: none; }
@@ -38,7 +38,7 @@
   <div class="header">
     <span style="font-size:24px">🐾</span>
     <h1>Iris's Daily Tracker</h1>
-    <button onclick="initPush()" id="notify-btn" style="background:none;border:0.5px solid #ccc;border-radius:8px;padding:4px 10px;font-size:11px;color:#666;cursor:pointer;margin-left:auto">🔔</button>
+    <button onclick="initPush()" id="notify-btn" style="background:none;border:0.5px solid #ccc;border-radius:8px;padding:4px 10px;font-size:11px;color:#666;cursor:pointer">🔔</button>
   </div>
 
   <div id="error" class="error" style="display:none"></div>
