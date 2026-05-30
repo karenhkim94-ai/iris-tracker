@@ -187,14 +187,12 @@ function render() {
 // Swipe on nav
 let touchStartX = 0;
 const navEl = document.querySelector(".nav");
-const isStandalone = window.navigator.standalone === true;
 navEl.addEventListener("touchstart", e => { touchStartX = e.touches[0].clientX; }, { passive: true });
 navEl.addEventListener("touchend", e => {
   const diff = touchStartX - e.changedTouches[0].clientX;
   if (Math.abs(diff) < 40) return;
-  const goLeft = isStandalone ? diff < 0 : diff > 0;
-  if (goLeft && daysAgo < 6) { daysAgo++; filter = null; render(); }
-  else if (!goLeft && daysAgo > 0) { daysAgo--; filter = null; render(); }
+  if (diff < 0 && daysAgo < 6) { daysAgo++; filter = null; render(); }
+  else if (diff > 0 && daysAgo > 0) { daysAgo--; filter = null; render(); }
 });
 
 fetchEvents();
