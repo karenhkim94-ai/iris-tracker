@@ -109,7 +109,7 @@ function buildRows(evts, activeFilter) {
     const eG = !activeFilter && (e.action === "peed" || e.action === "pooped");
     const nG = next && (next.action === "peed" || next.action === "pooped");
     if (eG && nG && (new Date(next.created_at) - new Date(e.created_at)) <= 60000) {
-      rows.push([e, next]);
+      rows.push([e, next].sort((a,b) => a.action === "peed" ? -1 : 1));
       used.add(e.id);
       used.add(next.id);
     } else {
