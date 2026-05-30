@@ -4,10 +4,10 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-title" content="Iris" />
+<meta name="apple-mobile-web-app-title" content="Iris Daily Tracker" />
 <meta name="theme-color" content="#F4A7B9" />
 <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23F4A7B9'/><text y='.9em' font-size='70' x='15'>🐾</text></svg>" />
-<title>Iris Daily Log</title>
+<title>Iris Daily Tracker</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f9f9f7; color: #1a1a1a; }
@@ -17,7 +17,7 @@
   .header h1 { font-size: 18px; font-weight: 500; }
   .header-right { font-size: 13px; color: #555; font-weight: 300; }
   .error { background: #FCEBEB; border: 1px solid #F09595; border-radius: 10px; padding: 0.6rem 1rem; margin-bottom: 1rem; font-size: 13px; color: #A32D2D; }
-  .nav { display: flex; align-items: center; justify-content: space-between; background: #f1efe8; border-radius: 12px; padding: 0.6rem 1rem; margin-bottom: 1.25rem; }
+  .nav { display: flex; align-items: center; justify-content: space-between; background: #f1efe8; border-radius: 12px; padding: 0.6rem 1rem; margin-bottom: 1.25rem; touch-action: pan-y; user-select: none; }
   .nav button { background: none; border: none; cursor: pointer; font-size: 20px; padding: 0 4px; color: #1a1a1a; }
   .nav button:disabled { color: #bbb; cursor: default; }
   .nav-label { text-align: center; }
@@ -72,12 +72,9 @@ const ACTIONS = [
 const actionMap = Object.fromEntries(ACTIONS.map(a => [a.id, a]));
 
 const TIME_BLOCKS = [
-  { label:"9 PM – 12 AM", start:21, end:24 },
-  { label:"6 PM – 9 PM",  start:18, end:21 },
-  { label:"3 PM – 6 PM",  start:15, end:18 },
-  { label:"12 PM – 3 PM", start:12, end:15 },
-  { label:"9 AM – 12 PM", start:9,  end:12 },
-  { label:"6 AM – 9 AM",  start:6,  end:9  },
+  { label:"6 PM – 12 AM", start:18, end:24 },
+  { label:"12 PM – 6 PM", start:12, end:18 },
+  { label:"6 AM – 12 PM", start:6,  end:12 },
   { label:"12 AM – 6 AM", start:0,  end:6  },
 ];
 
@@ -124,7 +121,18 @@ async function removeEvent(id) {
     method: "DELETE",
     headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
   });
-  await fetchEvents();
+  await // Swipe on nav
+let touchStartX = 0;
+const navEl = document.querySelector(".nav");
+navEl.addEventListener("touchstart", e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+navEl.addEventListener("touchend", e => {
+  const diff = touchStartX - e.changedTouches[0].clientX;
+  if (Math.abs(diff) < 40) return;
+  if (diff > 0 && daysAgo < 6) { daysAgo++; filter = null; render(); }
+  else if (diff < 0 && daysAgo > 0) { daysAgo--; filter = null; render(); }
+});
+
+fetchEvents();
 }
 
 function goBack()    { if (daysAgo < 6) { daysAgo++; filter = null; render(); } }
@@ -146,9 +154,9 @@ function render() {
   document.getElementById("filters").innerHTML = ACTIONS.map(a => {
     const active = filter === a.id;
     return `<button class="filter-btn" onclick="toggleFilter('${a.id}')">
-      <div style="background:${a.bg};border:${active ? `2.5px solid ${a.border}` : `1.5px solid ${a.border}`};border-radius:12px;width:90px;height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;margin:0 auto;">
+      <div style="background:${a.bg};border:${active ? `3px solid ${a.border}` : `1.5px solid ${a.border}`};border-radius:12px;width:90px;height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;margin:0 auto;">
         <span style="font-size:26px">${a.emoji}</span>
-        <span style="font-size:12px;font-weight:500;color:${a.color}">${counts[a.id]}</span>
+        <span style="font-size:12px;font-weight:${active ? 700 : 500};color:${a.color}">${counts[a.id]}</span>
       </div>
     </button>`;
   }).join("");
@@ -170,9 +178,16 @@ function render() {
     html += `<div class="hour-label">${block.label}</div>`;
     blockEvents.forEach(e => {
       const a = actionMap[e.action]; if (!a) return;
+      const fedEvents = allToday.filter(e => e.action === "fed").sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
+      let sublabel = "";
+      if (e.action === "fed") {
+        const idx = fedEvents.findIndex(f => f.id === e.id);
+        if (idx === 0) sublabel = " · Breakfast";
+        else if (idx === 1) sublabel = " · Dinner";
+      }
       html += `<div class="event-row">
         <span class="event-icon" style="background:${a.bg}">${a.emoji}</span>
-        <span class="event-label" style="color:${a.color}">${a.label}</span>
+        <span class="event-label" style="color:${a.color}">${a.label}${sublabel}</span>
         <span class="event-time">${fmtTime(e.created_at)}</span>
         <button class="btn-remove" onclick="removeEvent('${e.id}')">×</button>
       </div>`;
