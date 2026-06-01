@@ -6,14 +6,14 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-title" content="Iris Daily Tracker" />
 <meta name="theme-color" content="#F4A7B9" />
+<link rel="manifest" href="/iris-tracker/manifest.json" />
 <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23F4A7B9'/><text y='.9em' font-size='70' x='15'>🐾</text></svg>" />
 <title>Iris Daily Tracker</title>
-<link rel="manifest" href="/iris-tracker/manifest.json" />
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #ffffff; color: #1a1a1a; }
   .wrap { max-width: 500px; margin: 0 auto; padding: 1.5rem 1rem; }
-  .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; gap: 8px; }
+  .header { display: flex; align-items: center; margin-bottom: 1.25rem; gap: 8px; }
   .header h1 { font-size: 18px; font-weight: 500; }
   .error { background: #FCEBEB; border: 1px solid #F09595; border-radius: 10px; padding: 0.6rem 1rem; margin-bottom: 1rem; font-size: 13px; color: #A32D2D; }
   .nav { display: flex; align-items: center; justify-content: space-between; background: #f5f5f5; border-radius: 12px; padding: 0.6rem 1rem; margin-bottom: 1.25rem; touch-action: pan-y; user-select: none; }
@@ -22,8 +22,9 @@
   .nav-label { text-align: center; }
   .nav-label .day { font-size: 15px; font-weight: 500; }
   .nav-label .count { font-size: 12px; color: #666; }
-  .filters { display: flex; gap: 8px; margin-bottom: 1.25rem; }
-  .filter-btn { flex: 1; padding: 0; border-radius: 10px; cursor: pointer; border: none; background: transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; outline: none; -webkit-tap-highlight-color: transparent; }
+  .log-btns { display: flex; gap: 8px; margin-bottom: 1.25rem; }
+  .log-btn { flex: 1; padding: 0; border: none; background: transparent; cursor: pointer; outline: none; -webkit-tap-highlight-color: transparent; }
+  .log-btn-inner { border-radius: 12px; width: 90px; height: 90px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; margin: 0 auto; transition: transform 0.1s, background 0.15s; }
   .timeline { display: flex; flex-direction: column; }
   .hour-label { font-size: 14px; font-weight: 600; color: #444; padding: 12px 0 6px; letter-spacing: 0.02em; }
   .empty { text-align: center; padding: 2.5rem 0; color: #888; font-size: 14px; }
@@ -39,7 +40,6 @@
   <div class="header">
     <span style="font-size:24px">🐾</span>
     <h1>Iris's Daily Tracker</h1>
-    <button onclick="initPush()" id="notify-btn" style="background:none;border:0.5px solid #ccc;border-radius:8px;padding:4px 10px;font-size:11px;color:#666;cursor:pointer">🔔</button>
   </div>
 
   <div id="error" class="error" style="display:none"></div>
@@ -53,9 +53,8 @@
     <button id="btn-fwd" onclick="goForward()" disabled>›</button>
   </div>
 
-  <div class="filters" id="filters"></div>
+  <div class="log-btns" id="log-btns"></div>
   <div id="timeline"></div>
-  <div id="debug" style="font-size:10px;color:#999;padding:1rem;text-align:center"></div>
 </div>
 
 <script>
@@ -76,12 +75,7 @@ const TIME_BLOCKS = [
   { label:"12 AM – 6 AM", start:0,  end:6  },
 ];
 
-let events = [], daysAgo = 0, filter = null, rowMap = {};
-
-function removeRow(key) {
-  const ids = rowMap[key];
-  if (ids) removeEvents(ids);
-}
+let events = [], daysAgo = 0, rowMap = {};
 
 function dateKey(n) {
   const d = new Date(); d.setDate(d.getDate() - n);
@@ -100,22 +94,20 @@ function fmtTime(ts) {
   return new Date(ts).toLocaleTimeString("en-US", { hour:"numeric", minute:"2-digit", hour12:true });
 }
 
-function buildRows(evts, activeFilter) {
-  const filtered = activeFilter ? evts.filter(e => e.action === activeFilter) : evts;
-  const sorted = filtered.slice().sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
+function buildRows(evts) {
+  const sorted = evts.slice().sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
   const used = new Set();
   const rows = [];
   for (let i = 0; i < sorted.length; i++) {
     const e = sorted[i];
     if (used.has(e.id)) continue;
     const next = sorted.slice(i+1).find(n => !used.has(n.id));
-    const eG = !activeFilter && (e.action === "peed" || e.action === "pooped");
+    const eG = e.action === "peed" || e.action === "pooped";
     const nG = next && (next.action === "peed" || next.action === "pooped");
     if (eG && nG && (new Date(next.created_at) - new Date(e.created_at)) <= 60000) {
       const pair = [e, next].sort((a,b) => a.action === "peed" ? -1 : 1);
       rows.push(pair);
-      used.add(e.id);
-      used.add(next.id);
+      used.add(e.id); used.add(next.id);
     } else {
       rows.push([e]);
       used.add(e.id);
@@ -141,6 +133,36 @@ async function fetchEvents() {
   render();
 }
 
+async function logEvent(actionId) {
+  const btn = document.querySelector(`[data-action="${actionId}"] .log-btn-inner`);
+  if (btn) { btn.style.background = actionMap[actionId].border; btn.style.transform = "scale(0.94)"; }
+  setTimeout(() => { if (btn) { btn.style.background = actionMap[actionId].bg; btn.style.transform = "scale(1)"; } }, 300);
+
+  const tempId = "temp_" + Date.now();
+  events.push({ id: tempId, action: actionId, created_at: new Date().toISOString() });
+  render();
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/events`, {
+      method: "POST",
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${SUPABASE_KEY}`,
+        "Content-Type": "application/json",
+        Prefer: "return=representation"
+      },
+      body: JSON.stringify({ action: actionId })
+    });
+    const data = await res.json();
+    events = events.filter(e => e.id !== tempId);
+    events.push(data[0]);
+    render();
+  } catch(e) {
+    events = events.filter(e => e.id !== tempId);
+    render();
+  }
+}
+
 async function removeEvent(id) {
   events = events.filter(e => e.id !== id);
   render();
@@ -149,11 +171,11 @@ async function removeEvent(id) {
     headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
   });
   await fetchEvents();
+}
 
-const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-const hasPush = "PushManager" in window;
-const hasSW = "serviceWorker" in navigator;
-document.getElementById("debug").textContent = `standalone:${isStandalone} push:${hasPush} sw:${hasSW}`;
+function removeRow(key) {
+  const ids = rowMap[key];
+  if (ids) removeEvents(ids);
 }
 
 async function removeEvents(ids) {
@@ -166,9 +188,8 @@ async function removeEvents(ids) {
   await fetchEvents();
 }
 
-function goBack()    { if (daysAgo < 6) { daysAgo++; filter = null; render(); } }
-function goForward() { if (daysAgo > 0) { daysAgo--; filter = null; render(); } }
-function toggleFilter(id) { filter = filter === id ? null : id; render(); }
+function goBack()    { if (daysAgo < 6) { daysAgo++; render(); } }
+function goForward() { if (daysAgo > 0) { daysAgo--; render(); } }
 
 function render() {
   rowMap = {};
@@ -182,15 +203,14 @@ function render() {
   document.getElementById("btn-back").disabled = daysAgo >= 6;
   document.getElementById("btn-fwd").disabled = daysAgo <= 0;
 
-  document.getElementById("filters").innerHTML = ACTIONS.map(a => {
-    const active = filter === a.id;
-    return `<button class="filter-btn" onclick="toggleFilter('${a.id}')">
-      <div style="background:${a.bg};border:${active ? `3px solid ${a.border}` : `1.5px solid ${a.border}`};border-radius:12px;width:90px;height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;margin:0 auto;">
+  // Log buttons
+  document.getElementById("log-btns").innerHTML = ACTIONS.map(a => `
+    <button class="log-btn" data-action="${a.id}" onclick="logEvent('${a.id}')">
+      <div class="log-btn-inner" style="background:${a.bg};border:1.5px solid ${a.border};">
         <span style="font-size:26px">${a.emoji}</span>
-        <span style="font-size:12px;font-weight:${active ? 700 : 500};color:${a.color}">${counts[a.id]}</span>
+        <span style="font-size:12px;font-weight:500;color:${a.color}">${counts[a.id]}</span>
       </div>
-    </button>`;
-  }).join("");
+    </button>`).join("");
 
   const tl = document.getElementById("timeline");
   if (!allToday.length) {
@@ -198,16 +218,15 @@ function render() {
     return;
   }
 
-  let html = "", hasVisible = false, rowIdx = 0;
+  let html = "", rowIdx = 0;
   TIME_BLOCKS.forEach(block => {
     const blockEvts = allToday.filter(e => {
       const h = new Date(e.created_at).getHours();
       return h >= block.start && h < block.end;
     });
     if (!blockEvts.length) return;
-    const rows = buildRows(blockEvts, filter);
+    const rows = buildRows(blockEvts);
     if (!rows.length) return;
-    hasVisible = true;
     html += `<div class="hour-label">${block.label}</div>`;
     rows.forEach(row => {
       if (row.length === 1) {
@@ -241,7 +260,7 @@ function render() {
     });
   });
 
-  tl.innerHTML = hasVisible ? html : `<div class="empty">No events${filter ? " for " + actionMap[filter]?.label.toLowerCase() : " this day"}</div>`;
+  tl.innerHTML = html || `<div class="empty">No events this day</div>`;
 }
 
 // Swipe on nav
@@ -251,17 +270,15 @@ navEl.addEventListener("touchstart", e => { touchStartX = e.touches[0].clientX; 
 navEl.addEventListener("touchend", e => {
   const diff = touchStartX - e.changedTouches[0].clientX;
   if (Math.abs(diff) < 40) return;
-  if (diff < 0 && daysAgo < 6) { daysAgo++; filter = null; render(); }
-  else if (diff > 0 && daysAgo > 0) { daysAgo--; filter = null; render(); }
+  if (diff < 0 && daysAgo < 6) { daysAgo++; render(); }
+  else if (diff > 0 && daysAgo > 0) { daysAgo--; render(); }
 });
 
 fetchEvents();
 
 function connectWS() {
   const ws = new WebSocket(`wss://cvhntedxgzpwxlhehuck.supabase.co/realtime/v1/websocket?apikey=${SUPABASE_KEY}&vsn=1.0.0`);
-  ws.onopen = () => {
-    ws.send(JSON.stringify({ topic: "realtime:public:events", event: "phx_join", payload: {}, ref: "1" }));
-  };
+  ws.onopen = () => ws.send(JSON.stringify({ topic:"realtime:public:events", event:"phx_join", payload:{}, ref:"1" }));
   ws.onmessage = (msg) => {
     const data = JSON.parse(msg.data);
     if (data.event === "INSERT") { events.push(data.payload.record); render(); }
@@ -286,20 +303,10 @@ async function initPush() {
     });
     await fetch(`${SUPABASE_URL}/rest/v1/subscriptions`, {
       method: "POST",
-      headers: {
-        apikey: SUPABASE_KEY,
-        Authorization: `Bearer ${SUPABASE_KEY}`,
-        "Content-Type": "application/json",
-        Prefer: "resolution=merge-duplicates"
-      },
+      headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json", Prefer: "resolution=merge-duplicates" },
       body: JSON.stringify({ endpoint: sub.endpoint, subscription: JSON.stringify(sub) })
     });
-    console.log("Push ready");
-    document.getElementById("notify-btn").textContent = "🔔✓";
-    document.getElementById("notify-btn").style.color = "#3B6D11";
-  } catch(e) {
-    console.warn("Push init failed (non-fatal):", e);
-  }
+  } catch(e) { console.warn("Push init failed:", e); }
 }
 
 function urlBase64ToUint8Array(base64String) {
@@ -310,7 +317,6 @@ function urlBase64ToUint8Array(base64String) {
 }
 
 window.addEventListener("load", () => setTimeout(() => {
-  // Only auto-init if already granted
   if (Notification.permission === "granted") initPush();
 }, 1000));
 </script>
