@@ -223,14 +223,7 @@ function showConfirm(key) {
 function openEditModal(ids) {
   closeAllMenus();
   editingIds = ids;
-  const e = events.find(ev => ev.id === ids[0]);
-  const d = new Date(e.created_at);
-  const h = d.getHours();
-  const displayH = h === 0 ? 12 : h > 12 ? h - 12 : h;
-  document.getElementById("edit-hour").value = displayH;
-  document.getElementById("edit-minute").value = String(d.getMinutes()).padStart(2,"0");
-  document.getElementById("edit-ampm").value = h >= 12 ? "PM" : "AM";
-  document.getElementById("edit-modal").style.display = "flex";
+  saveEdit();
 }
 
 function closeModal() {
@@ -239,19 +232,26 @@ function closeModal() {
 }
 
 async function saveEdit() {
-  const h = parseInt(document.getElementById("edit-hour").value);
-  const m = parseInt(document.getElementById("edit-minute").value);
-  const ampm = document.getElementById("edit-ampm").value;
-  let hour = h;
-  if (ampm === "PM" && h !== 12) hour = h + 12;
-  if (ampm === "AM" && h === 12) hour = 0;
-
-  const base = new Date(events.find(e => e.id === editingIds[0]).created_at);
-  base.setHours(hour, m, 0, 0);
+  const e = events.find(ev => ev.id === editingIds[0]);
+  const d = new Date(e.created_at);
+  const h = d.getHours();
+  const displayH = h === 0 ? 12 : h > 12 ? h - 12 : h;
+  const ampm = h >= 12 ? "PM" : "AM";
+  const current = `${displayH}:${String(d.getMinutes()).padStart(2,"0")} ${ampm}`;
+  const input = window.prompt("Enter new time (e.g. 7:30 AM or 2:15 PM):", current);
+  if (!input) return;
+  const match = input.match(/(\d+):(\d+)\s*(AM|PM)/i);
+  if (!match) { alert("Invalid format. Use e.g. 7:30 AM"); return; }
+  let hour = parseInt(match[1]);
+  const min = parseInt(match[2]);
+  const period = match[3].toUpperCase();
+  if (period === "PM" && hour !== 12) hour += 12;
+  if (period === "AM" && hour === 12) hour = 0;
+  const base = new Date(e.created_at);
+  base.setHours(hour, min, 0, 0);
   const newTs = base.getTime();
-
-  events = events.map(e => editingIds.includes(e.id) ? { ...e, created_at: new Date(newTs).toISOString() } : e);
-  closeModal();
+  events = events.map(ev => editingIds.includes(ev.id) ? { ...ev, created_at: new Date(newTs).toISOString() } : ev);
+  editingIds = [];
   render();
   await Promise.all(editingIds.map(id => updateEventTime(id, newTs)));
   await fetchEvents();
