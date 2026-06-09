@@ -250,10 +250,11 @@ async function saveEdit() {
   const base = new Date(e.created_at);
   base.setHours(hour, min, 0, 0);
   const newTs = base.getTime();
-  events = events.map(ev => editingIds.includes(ev.id) ? { ...ev, created_at: new Date(newTs).toISOString() } : ev);
+  const idsToUpdate = [...editingIds];
+  events = events.map(ev => idsToUpdate.includes(ev.id) ? { ...ev, created_at: new Date(newTs).toISOString() } : ev);
   editingIds = [];
   render();
-  await Promise.all(editingIds.map(id => updateEventTime(id, newTs)));
+  await Promise.all(idsToUpdate.map(id => updateEventTime(id, newTs)));
   await fetchEvents();
 }
 
