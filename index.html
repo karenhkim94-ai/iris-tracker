@@ -24,33 +24,34 @@
   .nav-label .count { font-size: 12px; color: #666; }
   .actions { display: flex; gap: 8px; margin-bottom: 1.25rem; }
   .action-btn { flex: 1; padding: 0; border: none; background: transparent; cursor: pointer; outline: none; -webkit-tap-highlight-color: transparent; }
-  .timeline { display: flex; flex-direction: column; }
   .empty { text-align: center; padding: 2.5rem 0; color: #888; font-size: 14px; }
   .event-row { display: flex; align-items: center; gap: 10px; background: #fff; border: 0.5px solid #e0e0e0; border-radius: 10px; padding: 0.55rem 0.9rem; margin-bottom: 4px; }
   .event-icon { font-size: 16px; border-radius: 7px; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
   .event-label { flex: 1; font-size: 14px; font-weight: 500; }
   .event-time { font-size: 12px; color: #555; }
-  .menu-wrap { position: relative; }
-  .menu-btn { background: none; border: none; cursor: pointer; padding: 4px 8px; display: flex; flex-direction: column; gap: 3px; align-items: center; justify-content: center; height: 32px; }
-  .menu-dot { width: 3px; height: 3px; border-radius: 50%; background: #aaa; display: block; }
-  .menu-dropdown { position: absolute; right: 0; top: 100%; z-index: 10; background: #fff; border: 0.5px solid #e0e0e0; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); overflow: hidden; min-width: 220px; }
-  .menu-item { display: block; width: 100%; padding: 16px 18px; text-align: left; background: none; border: none; cursor: pointer; font-size: 15px; }
-  .menu-item-edit { color: #1a1a1a; border-bottom: 0.5px solid #f0f0f0; }
-  .menu-item-delete { color: #C0392B; }
-  .menu-confirm { padding: 14px; min-width: 200px; }
-  .menu-confirm-title { font-size: 13px; font-weight: 500; margin-bottom: 10px; }
-  .menu-confirm-btns { display: flex; gap: 6px; }
-  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 100; }
-  .modal { background: #fff; border-radius: 16px; padding: 1.5rem; width: 260px; box-shadow: 0 8px 24px rgba(0,0,0,0.15); margin: 0 1rem; }
-  .modal-title { font-size: 15px; font-weight: 500; margin-bottom: 1rem; }
-  .modal-inputs { display: flex; gap: 8px; align-items: center; margin-bottom: 1.25rem; }
-  .modal-input { width: 56px; padding: 6px 8px; border: 0.5px solid #ccc; border-radius: 8px; font-size: 16px; text-align: center; }
-  .modal-sep { font-size: 18px; color: #888; }
-  .modal-select { padding: 6px 8px; border: 0.5px solid #ccc; border-radius: 8px; font-size: 14px; }
-  .modal-btns { display: flex; gap: 8px; }
-  .btn-cancel { flex: 1; padding: 8px; background: #f1efe8; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; }
-  .btn-save { flex: 1; padding: 8px; background: #1a1a1a; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; }
-  .btn-delete-confirm { flex: 1; padding: 8px; background: #C0392B; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 12px; }
+  .ellipsis-btn { background: none; border: none; cursor: pointer; padding: 6px 8px; display: flex; flex-direction: column; gap: 3px; align-items: center; justify-content: center; }
+  .dot { width: 3px; height: 3px; border-radius: 50%; background: #bbb; display: block; }
+
+  /* Bottom sheet */
+  .sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 50; display: none; }
+  .sheet { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-radius: 20px 20px 0 0; z-index: 51; padding: 0 0 2rem; transform: translateY(100%); transition: transform 0.25s ease; max-width: 500px; margin: 0 auto; }
+  .sheet.open { transform: translateY(0); }
+  .sheet-handle { width: 36px; height: 4px; background: #e0e0e0; border-radius: 2px; margin: 12px auto 8px; }
+  .sheet-title { font-size: 13px; color: #999; text-align: center; padding: 4px 0 12px; border-bottom: 0.5px solid #f0f0f0; margin-bottom: 4px; }
+  .sheet-btn { display: block; width: 100%; padding: 16px 20px; text-align: left; background: none; border: none; cursor: pointer; font-size: 16px; color: #1a1a1a; border-bottom: 0.5px solid #f5f5f5; }
+  .sheet-btn-red { color: #C0392B; }
+  .sheet-btn-cancel { text-align: center; color: #666; border-bottom: none; font-weight: 500; }
+
+  /* Edit sheet */
+  .edit-sheet { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-radius: 20px 20px 0 0; z-index: 51; padding: 0 1rem 2rem; transform: translateY(100%); transition: transform 0.25s ease; max-width: 500px; margin: 0 auto; }
+  .edit-sheet.open { transform: translateY(0); }
+  .edit-inputs { display: flex; gap: 8px; align-items: center; margin: 1rem 0; }
+  .edit-input { flex: 1; padding: 12px; border: 0.5px solid #ddd; border-radius: 10px; font-size: 18px; text-align: center; }
+  .edit-sep { font-size: 20px; color: #888; }
+  .edit-select { padding: 12px; border: 0.5px solid #ddd; border-radius: 10px; font-size: 16px; }
+  .edit-btns { display: flex; gap: 8px; margin-top: 0.5rem; }
+  .edit-btn-cancel { flex: 1; padding: 14px; background: #f1efe8; border: none; border-radius: 12px; cursor: pointer; font-size: 15px; }
+  .edit-btn-save { flex: 1; padding: 14px; background: #1a1a1a; color: #fff; border: none; border-radius: 12px; cursor: pointer; font-size: 15px; font-weight: 500; }
 </style>
 </head>
 <body>
@@ -72,23 +73,34 @@
   <div id="timeline"></div>
 </div>
 
-<!-- Edit Modal -->
-<div class="modal-overlay" id="edit-modal" style="display:none">
-  <div class="modal">
-    <div class="modal-title">Edit time</div>
-    <div class="modal-inputs">
-      <input class="modal-input" type="number" min="1" max="12" id="edit-hour" />
-      <span class="modal-sep">:</span>
-      <input class="modal-input" type="number" min="0" max="59" id="edit-minute" />
-      <select class="modal-select" id="edit-ampm">
-        <option>AM</option>
-        <option>PM</option>
-      </select>
-    </div>
-    <div class="modal-btns">
-      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
-      <button class="btn-save" onclick="saveEdit()">Save</button>
-    </div>
+<!-- Action sheet overlay -->
+<div class="sheet-overlay" id="overlay" onclick="closeAll()"></div>
+
+<!-- Options sheet -->
+<div class="sheet" id="action-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title" id="sheet-title"></div>
+  <button class="sheet-btn" onclick="openEditSheet()">✏️ Edit time</button>
+  <button class="sheet-btn sheet-btn-red" onclick="confirmDelete()">🗑️ Delete</button>
+  <button class="sheet-btn sheet-btn-cancel" onclick="closeAll()">Cancel</button>
+</div>
+
+<!-- Edit sheet -->
+<div class="edit-sheet" id="edit-sheet">
+  <div class="sheet-handle"></div>
+  <div style="font-size:16px;font-weight:500;padding:8px 0 0">Edit time</div>
+  <div class="edit-inputs">
+    <input class="edit-input" type="number" min="1" max="12" id="edit-hour" />
+    <span class="edit-sep">:</span>
+    <input class="edit-input" type="number" min="0" max="59" id="edit-minute" />
+    <select class="edit-select" id="edit-ampm">
+      <option>AM</option>
+      <option>PM</option>
+    </select>
+  </div>
+  <div class="edit-btns">
+    <button class="edit-btn-cancel" onclick="closeEditSheet()">Cancel</button>
+    <button class="edit-btn-save" onclick="saveEdit()">Save</button>
   </div>
 </div>
 
@@ -110,7 +122,7 @@ const TIME_BLOCKS = [
   { label:"Night",     start:0,  end:6  },
 ];
 
-let events = [], daysAgo = 0, rowMap = {}, openMenuId = null, editingIds = [];
+let events = [], daysAgo = 0, activeIds = [];
 
 function dateKey(n) {
   const d = new Date(); d.setDate(d.getDate() - n);
@@ -174,17 +186,9 @@ async function logAction(actionId) {
   if (data[0]) { events.push(data[0]); render(); }
 }
 
-async function removeEvent(id) {
-  events = events.filter(e => e.id !== id);
-  render();
-  await fetch(`${SUPABASE_URL}/rest/v1/events?id=eq.${id}`, {
-    method: "DELETE",
-    headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
-  });
-  await fetchEvents();
-}
-
-async function removeEvents(ids) {
+async function deleteActive() {
+  const ids = [...activeIds];
+  closeAll();
   events = events.filter(e => !ids.includes(e.id));
   render();
   await Promise.all(ids.map(id => fetch(`${SUPABASE_URL}/rest/v1/events?id=eq.${id}`, {
@@ -201,46 +205,38 @@ async function updateEventTime(id, newTs) {
   });
 }
 
-function openMenu(key) {
-  if (openMenuId === key) { closeAllMenus(); return; }
-  closeAllMenus();
-  openMenuId = key;
-  const el = document.getElementById(`menu-${key}`);
-  if (el) el.style.display = "block";
+// Sheet management
+function openSheet(ids, label) {
+  activeIds = ids;
+  document.getElementById("sheet-title").textContent = label;
+  document.getElementById("overlay").style.display = "block";
+  document.getElementById("action-sheet").classList.add("open");
 }
 
-function closeAllMenus() {
-  openMenuId = null;
-  document.querySelectorAll(".menu-dropdown").forEach(el => el.style.display = "none");
-  document.querySelectorAll(".menu-confirm").forEach(el => el.style.display = "none");
+function closeAll() {
+  document.getElementById("overlay").style.display = "none";
+  document.getElementById("action-sheet").classList.remove("open");
+  document.getElementById("edit-sheet").classList.remove("open");
 }
 
-function showConfirm(key) {
-  document.getElementById(`menu-items-${key}`).style.display = "none";
-  document.getElementById(`menu-confirm-${key}`).style.display = "block";
+function confirmDelete() {
+  if (confirm("Delete this event?")) deleteActive();
+  else closeAll();
 }
 
-function openEditModal(ids) {
-  closeAllMenus();
-  editingIds = ids;
-  const e = events.find(ev => ev.id === ids[0]);
+function openEditSheet() {
+  const e = events.find(ev => ev.id === activeIds[0]);
   const d = new Date(e.created_at);
   const h = d.getHours();
-  const displayH = h === 0 ? 12 : h > 12 ? h - 12 : h;
-  document.getElementById("edit-hour").value = displayH;
+  document.getElementById("edit-hour").value = h === 0 ? 12 : h > 12 ? h - 12 : h;
   document.getElementById("edit-minute").value = String(d.getMinutes()).padStart(2,"0");
   document.getElementById("edit-ampm").value = h >= 12 ? "PM" : "AM";
-  document.getElementById("edit-modal").style.display = "flex";
+  document.getElementById("action-sheet").classList.remove("open");
+  document.getElementById("edit-sheet").classList.add("open");
 }
 
-function closeModal() {
-  document.getElementById("edit-modal").style.display = "none";
-  editingIds = [];
-}
-
-function closeModal() {
-  document.getElementById("edit-modal").style.display = "none";
-  editingIds = [];
+function closeEditSheet() {
+  closeAll();
 }
 
 async function saveEdit() {
@@ -248,28 +244,23 @@ async function saveEdit() {
   const m = parseInt(document.getElementById("edit-minute").value);
   const ampm = document.getElementById("edit-ampm").value;
   let hour = h;
-  if (ampm === "PM" && h !== 12) hour = h + 12;
+  if (ampm === "PM" && h !== 12) hour += 12;
   if (ampm === "AM" && h === 12) hour = 0;
-  const base = new Date(events.find(e => e.id === editingIds[0]).created_at);
+  const base = new Date(events.find(e => e.id === activeIds[0]).created_at);
   base.setHours(hour, m, 0, 0);
   const newTs = base.getTime();
-  const idsToUpdate = [...editingIds];
-  events = events.map(e => idsToUpdate.includes(e.id) ? { ...e, created_at: new Date(newTs).toISOString() } : e);
-  closeModal();
+  const ids = [...activeIds];
+  events = events.map(e => ids.includes(e.id) ? { ...e, created_at: new Date(newTs).toISOString() } : e);
+  closeAll();
   render();
-  await Promise.all(idsToUpdate.map(id => updateEventTime(id, newTs)));
+  await Promise.all(ids.map(id => updateEventTime(id, newTs)));
   await fetchEvents();
 }
 
-function goBack()    { if (daysAgo < 6) { daysAgo++; closeAllMenus(); render(); } }
-function goForward() { if (daysAgo > 0) { daysAgo--; closeAllMenus(); render(); } }
-
-document.addEventListener("click", e => {
-  if (!e.target.closest(".menu-wrap")) closeAllMenus();
-});
+function goBack()    { if (daysAgo < 6) { daysAgo++; render(); } }
+function goForward() { if (daysAgo > 0) { daysAgo--; render(); } }
 
 function render() {
-  rowMap = {};
   const cur = dateKey(daysAgo);
   const allToday = events.filter(e => localDateStr(e.created_at) === cur).sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
   const counts = Object.fromEntries(ACTIONS.map(a => [a.id, allToday.filter(e => e.action === a.id).length]));
@@ -304,7 +295,8 @@ function render() {
     rows.forEach(row => {
       const key = `r${rowIdx++}`;
       const ids = row.map(e => e.id);
-      const idsJson = JSON.stringify(ids);
+      const label = row.map(e => actionMap[e.action]?.label).join(" + ");
+      const idsStr = ids.map(id => `'${id}'`).join(",");
       if (row.length === 1) {
         const e = row[0]; const a = actionMap[e.action]; if (!a) return;
         let sub = "";
@@ -317,24 +309,9 @@ function render() {
           <span class="event-icon" style="background:${a.bg}">${a.emoji}</span>
           <span class="event-label" style="color:${a.color}">${a.label}${sub}</span>
           <span class="event-time">${fmtTime(e.created_at)}</span>
-          <div class="menu-wrap">
-            <button class="menu-btn" onclick="openMenu('${key}')">
-              <span class="menu-dot"></span><span class="menu-dot"></span><span class="menu-dot"></span>
-            </button>
-            <div class="menu-dropdown" id="menu-${key}" style="display:none">
-              <div id="menu-items-${key}">
-                <button class="menu-item menu-item-edit" onclick="openEditModal(${idsJson})">✏️ Edit time</button>
-                <button class="menu-item menu-item-delete" onclick="showConfirm('${key}')">🗑️ Delete</button>
-              </div>
-              <div class="menu-confirm" id="menu-confirm-${key}" style="display:none">
-                <div class="menu-confirm-title">Delete this event?</div>
-                <div class="menu-confirm-btns">
-                  <button class="btn-cancel" onclick="closeAllMenus()">Cancel</button>
-                  <button class="btn-delete-confirm" onclick="removeEvents(${idsJson});closeAllMenus()">Delete</button>
-                </div>
-              </div>
-            </div>
-          </div>
+          <button class="ellipsis-btn" onclick="openSheet([${idsStr}], '${label}')">
+            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+          </button>
         </div>`;
       } else {
         html += `<div class="event-row">
@@ -345,24 +322,9 @@ function render() {
             ${row.map((e,i) => `${i > 0 ? '<span style="color:#333;font-size:9px;margin:0 6px">+</span>' : ''}<span style="color:${actionMap[e.action].color}">${actionMap[e.action].label}</span>`).join("")}
           </span>
           <span class="event-time">${fmtTime(row[0].created_at)}</span>
-          <div class="menu-wrap">
-            <button class="menu-btn" onclick="openMenu('${key}')">
-              <span class="menu-dot"></span><span class="menu-dot"></span><span class="menu-dot"></span>
-            </button>
-            <div class="menu-dropdown" id="menu-${key}" style="display:none">
-              <div id="menu-items-${key}">
-                <button class="menu-item menu-item-edit" onclick="openEditModal(${idsJson})">✏️ Edit time</button>
-                <button class="menu-item menu-item-delete" onclick="showConfirm('${key}')">🗑️ Delete</button>
-              </div>
-              <div class="menu-confirm" id="menu-confirm-${key}" style="display:none">
-                <div class="menu-confirm-title">Delete this event?</div>
-                <div class="menu-confirm-btns">
-                  <button class="btn-cancel" onclick="closeAllMenus()">Cancel</button>
-                  <button class="btn-delete-confirm" onclick="removeEvents(${idsJson});closeAllMenus()">Delete</button>
-                </div>
-              </div>
-            </div>
-          </div>
+          <button class="ellipsis-btn" onclick="openSheet([${idsStr}], '${label}')">
+            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+          </button>
         </div>`;
       }
     });
