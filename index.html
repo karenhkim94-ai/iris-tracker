@@ -30,7 +30,27 @@
   .event-icon { font-size: 16px; border-radius: 7px; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
   .event-label { flex: 1; font-size: 14px; font-weight: 500; }
   .event-time { font-size: 12px; color: #555; }
-  .btn-remove { background: none; border: none; cursor: pointer; color: #aaa; font-size: 15px; padding: 0 2px; line-height: 1; }
+  .menu-wrap { position: relative; }
+  .menu-btn { background: none; border: none; cursor: pointer; padding: 4px 8px; display: flex; flex-direction: column; gap: 3px; align-items: center; justify-content: center; height: 32px; }
+  .menu-dot { width: 3px; height: 3px; border-radius: 50%; background: #aaa; display: block; }
+  .menu-dropdown { position: absolute; right: 0; top: 100%; z-index: 10; background: #fff; border: 0.5px solid #e0e0e0; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); overflow: hidden; min-width: 220px; }
+  .menu-item { display: block; width: 100%; padding: 16px 18px; text-align: left; background: none; border: none; cursor: pointer; font-size: 15px; }
+  .menu-item-edit { color: #1a1a1a; border-bottom: 0.5px solid #f0f0f0; }
+  .menu-item-delete { color: #C0392B; }
+  .menu-confirm { padding: 14px; min-width: 200px; }
+  .menu-confirm-title { font-size: 13px; font-weight: 500; margin-bottom: 10px; }
+  .menu-confirm-btns { display: flex; gap: 6px; }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 100; }
+  .modal { background: #fff; border-radius: 16px; padding: 1.5rem; width: 260px; box-shadow: 0 8px 24px rgba(0,0,0,0.15); margin: 0 1rem; }
+  .modal-title { font-size: 15px; font-weight: 500; margin-bottom: 1rem; }
+  .modal-inputs { display: flex; gap: 8px; align-items: center; margin-bottom: 1.25rem; }
+  .modal-input { width: 56px; padding: 6px 8px; border: 0.5px solid #ccc; border-radius: 8px; font-size: 16px; text-align: center; }
+  .modal-sep { font-size: 18px; color: #888; }
+  .modal-select { padding: 6px 8px; border: 0.5px solid #ccc; border-radius: 8px; font-size: 14px; }
+  .modal-btns { display: flex; gap: 8px; }
+  .btn-cancel { flex: 1; padding: 8px; background: #f1efe8; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; }
+  .btn-save { flex: 1; padding: 8px; background: #1a1a1a; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; }
+  .btn-delete-confirm { flex: 1; padding: 8px; background: #C0392B; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 12px; }
 </style>
 </head>
 <body>
@@ -39,9 +59,7 @@
     <span style="font-size:24px">🐾</span>
     <h1>Iris's Daily Tracker</h1>
   </div>
-
   <div id="error" class="error" style="display:none"></div>
-
   <div class="nav">
     <button id="btn-back" onclick="goBack()">‹</button>
     <div class="nav-label">
@@ -50,9 +68,28 @@
     </div>
     <button id="btn-fwd" onclick="goForward()" disabled>›</button>
   </div>
-
   <div class="actions" id="actions"></div>
   <div id="timeline"></div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal-overlay" id="edit-modal" style="display:none">
+  <div class="modal">
+    <div class="modal-title">Edit time</div>
+    <div class="modal-inputs">
+      <input class="modal-input" type="number" min="1" max="12" id="edit-hour" />
+      <span class="modal-sep">:</span>
+      <input class="modal-input" type="number" min="0" max="59" id="edit-minute" />
+      <select class="modal-select" id="edit-ampm">
+        <option>AM</option>
+        <option>PM</option>
+      </select>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-save" onclick="saveEdit()">Save</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -73,20 +110,13 @@ const TIME_BLOCKS = [
   { label:"Night",     start:0,  end:6  },
 ];
 
-let events = [], daysAgo = 0, rowMap = {};
-
-function removeRow(key) {
-  const ids = rowMap[key];
-  if (ids) removeEvents(ids);
-}
+let events = [], daysAgo = 0, rowMap = {}, openMenuId = null, editingIds = [];
 
 function dateKey(n) {
   const d = new Date(); d.setDate(d.getDate() - n);
   return d.toLocaleDateString("en-CA");
 }
-function localDateStr(ts) {
-  return new Date(ts).toLocaleDateString("en-CA");
-}
+function localDateStr(ts) { return new Date(ts).toLocaleDateString("en-CA"); }
 function fmtDayLabel(n) {
   if (n === 0) return "Today";
   if (n === 1) return "Yesterday";
@@ -108,13 +138,10 @@ function buildRows(evts) {
     const eG = e.action === "peed" || e.action === "pooped";
     const nG = next && (next.action === "peed" || next.action === "pooped");
     if (eG && nG && (new Date(next.created_at) - new Date(e.created_at)) <= 60000) {
-      const pair = [e, next].sort((a,b) => a.action === "peed" ? -1 : 1);
-      rows.push(pair);
-      used.add(e.id);
-      used.add(next.id);
+      rows.push([e, next].sort((a,b) => a.action === "peed" ? -1 : 1));
+      used.add(e.id); used.add(next.id);
     } else {
-      rows.push([e]);
-      used.add(e.id);
+      rows.push([e]); used.add(e.id);
     }
   }
   return rows.reverse();
@@ -137,6 +164,16 @@ async function fetchEvents() {
   render();
 }
 
+async function logAction(actionId) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/events`, {
+    method: "POST",
+    headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json", Prefer: "return=representation" },
+    body: JSON.stringify({ action: actionId })
+  });
+  const data = await res.json();
+  if (data[0]) { events.push(data[0]); render(); }
+}
+
 async function removeEvent(id) {
   events = events.filter(e => e.id !== id);
   render();
@@ -151,14 +188,81 @@ async function removeEvents(ids) {
   events = events.filter(e => !ids.includes(e.id));
   render();
   await Promise.all(ids.map(id => fetch(`${SUPABASE_URL}/rest/v1/events?id=eq.${id}`, {
-    method: "DELETE",
-    headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
+    method: "DELETE", headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
   })));
   await fetchEvents();
 }
 
-function goBack()    { if (daysAgo < 6) { daysAgo++; render(); } }
-function goForward() { if (daysAgo > 0) { daysAgo--; render(); } }
+async function updateEventTime(id, newTs) {
+  await fetch(`${SUPABASE_URL}/rest/v1/events?id=eq.${id}`, {
+    method: "PATCH",
+    headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ created_at: new Date(newTs).toISOString() })
+  });
+}
+
+function openMenu(key) {
+  if (openMenuId === key) { closeAllMenus(); return; }
+  closeAllMenus();
+  openMenuId = key;
+  const el = document.getElementById(`menu-${key}`);
+  if (el) el.style.display = "block";
+}
+
+function closeAllMenus() {
+  openMenuId = null;
+  document.querySelectorAll(".menu-dropdown").forEach(el => el.style.display = "none");
+  document.querySelectorAll(".menu-confirm").forEach(el => el.style.display = "none");
+}
+
+function showConfirm(key) {
+  document.getElementById(`menu-items-${key}`).style.display = "none";
+  document.getElementById(`menu-confirm-${key}`).style.display = "block";
+}
+
+function openEditModal(ids) {
+  closeAllMenus();
+  editingIds = ids;
+  const e = events.find(ev => ev.id === ids[0]);
+  const d = new Date(e.created_at);
+  const h = d.getHours();
+  const displayH = h === 0 ? 12 : h > 12 ? h - 12 : h;
+  document.getElementById("edit-hour").value = displayH;
+  document.getElementById("edit-minute").value = String(d.getMinutes()).padStart(2,"0");
+  document.getElementById("edit-ampm").value = h >= 12 ? "PM" : "AM";
+  document.getElementById("edit-modal").style.display = "flex";
+}
+
+function closeModal() {
+  document.getElementById("edit-modal").style.display = "none";
+  editingIds = [];
+}
+
+async function saveEdit() {
+  const h = parseInt(document.getElementById("edit-hour").value);
+  const m = parseInt(document.getElementById("edit-minute").value);
+  const ampm = document.getElementById("edit-ampm").value;
+  let hour = h;
+  if (ampm === "PM" && h !== 12) hour = h + 12;
+  if (ampm === "AM" && h === 12) hour = 0;
+
+  const base = new Date(events.find(e => e.id === editingIds[0]).created_at);
+  base.setHours(hour, m, 0, 0);
+  const newTs = base.getTime();
+
+  events = events.map(e => editingIds.includes(e.id) ? { ...e, created_at: new Date(newTs).toISOString() } : e);
+  closeModal();
+  render();
+  await Promise.all(editingIds.map(id => updateEventTime(id, newTs)));
+  await fetchEvents();
+}
+
+function goBack()    { if (daysAgo < 6) { daysAgo++; closeAllMenus(); render(); } }
+function goForward() { if (daysAgo > 0) { daysAgo--; closeAllMenus(); render(); } }
+
+document.addEventListener("click", e => {
+  if (!e.target.closest(".menu-wrap")) closeAllMenus();
+});
 
 function render() {
   rowMap = {};
@@ -181,26 +285,22 @@ function render() {
     </button>`).join("");
 
   const tl = document.getElementById("timeline");
-  if (!allToday.length) {
-    tl.innerHTML = `<div class="empty">No events this day</div>`;
-    return;
-  }
+  if (!allToday.length) { tl.innerHTML = `<div class="empty">No events this day</div>`; return; }
 
-  let html = "", hasVisible = false, rowIdx = 0;
-  TIME_BLOCKS.forEach((block, bi) => {
-    const blockEvts = allToday.filter(e => {
-      const h = new Date(e.created_at).getHours();
-      return h >= block.start && h < block.end;
-    });
+  let html = "", rowIdx = 0;
+  TIME_BLOCKS.forEach(block => {
+    const blockEvts = allToday.filter(e => { const h = new Date(e.created_at).getHours(); return h >= block.start && h < block.end; });
     if (!blockEvts.length) return;
     const rows = buildRows(blockEvts);
     if (!rows.length) return;
-    hasVisible = true;
     html += `<div style="display:flex;align-items:center;gap:8px;padding:12px 0 6px">
       <span style="font-size:14px;font-weight:600;color:#444;white-space:nowrap">${block.label}</span>
       <div style="flex:1;height:0.5px;background:#e0e0e0"></div>
     </div>`;
     rows.forEach(row => {
+      const key = `r${rowIdx++}`;
+      const ids = row.map(e => e.id);
+      const idsJson = JSON.stringify(ids);
       if (row.length === 1) {
         const e = row[0]; const a = actionMap[e.action]; if (!a) return;
         let sub = "";
@@ -213,11 +313,26 @@ function render() {
           <span class="event-icon" style="background:${a.bg}">${a.emoji}</span>
           <span class="event-label" style="color:${a.color}">${a.label}${sub}</span>
           <span class="event-time">${fmtTime(e.created_at)}</span>
-          <button class="btn-remove" onclick="removeEvent('${e.id}')">×</button>
+          <div class="menu-wrap">
+            <button class="menu-btn" onclick="openMenu('${key}')">
+              <span class="menu-dot"></span><span class="menu-dot"></span><span class="menu-dot"></span>
+            </button>
+            <div class="menu-dropdown" id="menu-${key}" style="display:none">
+              <div id="menu-items-${key}">
+                <button class="menu-item menu-item-edit" onclick="openEditModal(${idsJson})">✏️ Edit time</button>
+                <button class="menu-item menu-item-delete" onclick="showConfirm('${key}')">🗑️ Delete</button>
+              </div>
+              <div class="menu-confirm" id="menu-confirm-${key}" style="display:none">
+                <div class="menu-confirm-title">Delete this event?</div>
+                <div class="menu-confirm-btns">
+                  <button class="btn-cancel" onclick="closeAllMenus()">Cancel</button>
+                  <button class="btn-delete-confirm" onclick="removeEvents(${idsJson});closeAllMenus()">Delete</button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>`;
       } else {
-        const key = `r${rowIdx++}`;
-        rowMap[key] = row.map(e => e.id);
         html += `<div class="event-row">
           <div style="display:flex;gap:4px;flex-shrink:0">
             ${row.map(e => `<span class="event-icon" style="background:${actionMap[e.action].bg}">${actionMap[e.action].emoji}</span>`).join("")}
@@ -226,28 +341,29 @@ function render() {
             ${row.map((e,i) => `${i > 0 ? '<span style="color:#333;font-size:9px;margin:0 6px">+</span>' : ''}<span style="color:${actionMap[e.action].color}">${actionMap[e.action].label}</span>`).join("")}
           </span>
           <span class="event-time">${fmtTime(row[0].created_at)}</span>
-          <button class="btn-remove" onclick="removeRow('${key}')">×</button>
+          <div class="menu-wrap">
+            <button class="menu-btn" onclick="openMenu('${key}')">
+              <span class="menu-dot"></span><span class="menu-dot"></span><span class="menu-dot"></span>
+            </button>
+            <div class="menu-dropdown" id="menu-${key}" style="display:none">
+              <div id="menu-items-${key}">
+                <button class="menu-item menu-item-edit" onclick="openEditModal(${idsJson})">✏️ Edit time</button>
+                <button class="menu-item menu-item-delete" onclick="showConfirm('${key}')">🗑️ Delete</button>
+              </div>
+              <div class="menu-confirm" id="menu-confirm-${key}" style="display:none">
+                <div class="menu-confirm-title">Delete this event?</div>
+                <div class="menu-confirm-btns">
+                  <button class="btn-cancel" onclick="closeAllMenus()">Cancel</button>
+                  <button class="btn-delete-confirm" onclick="removeEvents(${idsJson});closeAllMenus()">Delete</button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>`;
       }
     });
   });
-
-  tl.innerHTML = hasVisible ? html : `<div class="empty">No events this day</div>`;
-}
-
-async function logAction(actionId) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/events`, {
-    method: "POST",
-    headers: {
-      apikey: SUPABASE_KEY,
-      Authorization: `Bearer ${SUPABASE_KEY}`,
-      "Content-Type": "application/json",
-      Prefer: "return=representation"
-    },
-    body: JSON.stringify({ action: actionId })
-  });
-  const data = await res.json();
-  if (data[0]) { events.push(data[0]); render(); }
+  tl.innerHTML = html || `<div class="empty">No events this day</div>`;
 }
 
 let touchStartX = 0;
@@ -264,7 +380,7 @@ fetchEvents();
 
 function connectWS() {
   const ws = new WebSocket(`wss://cvhntedxgzpwxlhehuck.supabase.co/realtime/v1/websocket?apikey=${SUPABASE_KEY}&vsn=1.0.0`);
-  ws.onopen = () => ws.send(JSON.stringify({ topic: "realtime:public:events", event: "phx_join", payload: {}, ref: "1" }));
+  ws.onopen = () => ws.send(JSON.stringify({ topic:"realtime:public:events", event:"phx_join", payload:{}, ref:"1" }));
   ws.onmessage = (msg) => {
     const data = JSON.parse(msg.data);
     if (data.event === "INSERT") { events.push(data.payload.record); render(); }
@@ -289,17 +405,10 @@ async function initPush() {
     });
     await fetch(`${SUPABASE_URL}/rest/v1/subscriptions`, {
       method: "POST",
-      headers: {
-        apikey: SUPABASE_KEY,
-        Authorization: `Bearer ${SUPABASE_KEY}`,
-        "Content-Type": "application/json",
-        Prefer: "resolution=merge-duplicates"
-      },
+      headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json", Prefer: "resolution=merge-duplicates" },
       body: JSON.stringify({ endpoint: sub.endpoint, subscription: JSON.stringify(sub) })
     });
-  } catch(e) {
-    console.warn("Push init failed:", e);
-  }
+  } catch(e) { console.warn("Push init failed:", e); }
 }
 
 function urlBase64ToUint8Array(base64String) {
