@@ -11,8 +11,8 @@
 <title>Iris Daily Tracker</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f9f9f7; color: #1a1a1a; overflow: hidden; height: 100vh; }
-  .wrap { max-width: 500px; margin: 0 auto; padding: env(safe-area-inset-top, 2.5rem) 1rem 1.5rem; height: 100vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f9f9f7; color: #1a1a1a; }
+  .wrap { max-width: 500px; margin: 0 auto; padding: 1.5rem 1rem; }
   .header { display: flex; align-items: center; gap: 8px; margin-bottom: 1.25rem; }
   .header h1 { font-size: 18px; font-weight: 500; }
   .error { background: #FCEBEB; border: 1px solid #F09595; border-radius: 10px; padding: 0.6rem 1rem; margin-bottom: 1rem; font-size: 13px; color: #A32D2D; }
@@ -79,8 +79,7 @@
 <!-- Options sheet -->
 <div class="sheet" id="action-sheet">
   <div class="sheet-handle"></div>
-  <div class="sheet-title" id="sheet-title"></div>
-  <div id="sheet-time" style="font-size:12px;color:#999;text-align:center;padding-bottom:12px;border-bottom:0.5px solid #f0f0f0;margin-bottom:4px"></div>
+  <div id="sheet-header"></div>
   <button class="sheet-btn" onclick="openEditSheet()">✏️ Edit time</button>
   <button class="sheet-btn sheet-btn-red" onclick="confirmDelete()">🗑️ Delete</button>
   <button class="sheet-btn sheet-btn-cancel" onclick="closeAll()">Cancel</button>
@@ -210,8 +209,22 @@ async function updateEventTime(id, newTs) {
 function openSheet(ids, label) {
   activeIds = ids;
   const e = events.find(ev => ev.id === ids[0]);
-  document.getElementById("sheet-title").textContent = label;
-  document.getElementById("sheet-time").textContent = fmtTime(e.created_at);
+  const iconsHtml = ids.map(id => {
+    const ev = events.find(ev => ev.id === id);
+    const a = actionMap[ev?.action];
+    return `<span class="event-icon" style="background:${a?.bg}">${a?.emoji}</span>`;
+  }).join("");
+  const labelsHtml = ids.map((id, i) => {
+    const ev = events.find(ev => ev.id === id);
+    const a = actionMap[ev?.action];
+    return `${i > 0 ? '<span style="color:#333;font-size:9px;margin:0 6px">+</span>' : ''}<span style="color:${a?.color};font-weight:500">${a?.label}</span>`;
+  }).join("");
+  document.getElementById("sheet-header").innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 20px 12px;border-bottom:0.5px solid #f0f0f0;margin-bottom:4px">
+      <div style="display:flex;gap:4px">${iconsHtml}</div>
+      <span style="flex:1;font-size:14px;display:flex;align-items:center">${labelsHtml}</span>
+      <span style="font-size:12px;color:#555">${fmtTime(e.created_at)}</span>
+    </div>`;
   document.getElementById("overlay").style.display = "block";
   document.getElementById("action-sheet").classList.add("open");
 }
