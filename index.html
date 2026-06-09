@@ -12,7 +12,7 @@
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f9f9f7; color: #1a1a1a; overflow: hidden; height: 100vh; }
-  .wrap { max-width: 500px; margin: 0 auto; padding: 1.5rem 1rem; height: 100vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .wrap { max-width: 500px; margin: 0 auto; padding: 2.5rem 1rem 1.5rem; height: 100vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
   .header { display: flex; align-items: center; gap: 8px; margin-bottom: 1.25rem; }
   .header h1 { font-size: 18px; font-weight: 500; }
   .error { background: #FCEBEB; border: 1px solid #F09595; border-radius: 10px; padding: 0.6rem 1rem; margin-bottom: 1rem; font-size: 13px; color: #A32D2D; }
@@ -223,7 +223,19 @@ function showConfirm(key) {
 function openEditModal(ids) {
   closeAllMenus();
   editingIds = ids;
-  saveEdit();
+  const e = events.find(ev => ev.id === ids[0]);
+  const d = new Date(e.created_at);
+  const h = d.getHours();
+  const displayH = h === 0 ? 12 : h > 12 ? h - 12 : h;
+  document.getElementById("edit-hour").value = displayH;
+  document.getElementById("edit-minute").value = String(d.getMinutes()).padStart(2,"0");
+  document.getElementById("edit-ampm").value = h >= 12 ? "PM" : "AM";
+  document.getElementById("edit-modal").style.display = "flex";
+}
+
+function closeModal() {
+  document.getElementById("edit-modal").style.display = "none";
+  editingIds = [];
 }
 
 function closeModal() {
@@ -232,27 +244,18 @@ function closeModal() {
 }
 
 async function saveEdit() {
-  const e = events.find(ev => ev.id === editingIds[0]);
-  const d = new Date(e.created_at);
-  const h = d.getHours();
-  const displayH = h === 0 ? 12 : h > 12 ? h - 12 : h;
-  const ampm = h >= 12 ? "PM" : "AM";
-  const current = `${displayH}:${String(d.getMinutes()).padStart(2,"0")} ${ampm}`;
-  const input = window.prompt("Enter new time (e.g. 7:30 AM or 2:15 PM):", current);
-  if (!input) return;
-  const match = input.match(/(\d+):(\d+)\s*(AM|PM)/i);
-  if (!match) { alert("Invalid format. Use e.g. 7:30 AM"); return; }
-  let hour = parseInt(match[1]);
-  const min = parseInt(match[2]);
-  const period = match[3].toUpperCase();
-  if (period === "PM" && hour !== 12) hour += 12;
-  if (period === "AM" && hour === 12) hour = 0;
-  const base = new Date(e.created_at);
-  base.setHours(hour, min, 0, 0);
+  const h = parseInt(document.getElementById("edit-hour").value);
+  const m = parseInt(document.getElementById("edit-minute").value);
+  const ampm = document.getElementById("edit-ampm").value;
+  let hour = h;
+  if (ampm === "PM" && h !== 12) hour = h + 12;
+  if (ampm === "AM" && h === 12) hour = 0;
+  const base = new Date(events.find(e => e.id === editingIds[0]).created_at);
+  base.setHours(hour, m, 0, 0);
   const newTs = base.getTime();
   const idsToUpdate = [...editingIds];
-  events = events.map(ev => idsToUpdate.includes(ev.id) ? { ...ev, created_at: new Date(newTs).toISOString() } : ev);
-  editingIds = [];
+  events = events.map(e => idsToUpdate.includes(e.id) ? { ...e, created_at: new Date(newTs).toISOString() } : e);
+  closeModal();
   render();
   await Promise.all(idsToUpdate.map(id => updateEventTime(id, newTs)));
   await fetchEvents();
