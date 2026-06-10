@@ -46,11 +46,18 @@
   .edit-btn-cancel { flex: 1; padding: 14px; background: #f1efe8; border: none; border-radius: 12px; cursor: pointer; font-size: 15px; }
   .edit-btn-save { flex: 1; padding: 14px; background: #1a1a1a; color: #fff; border: none; border-radius: 12px; cursor: pointer; font-size: 15px; font-weight: 500; }
   .toast { position: fixed; bottom: 4rem; left: 50%; transform: translateX(-50%); background: #1a1a1a; color: #fff; border-radius: 8px; padding: 7px 14px; font-size: 12px; z-index: 200; white-space: nowrap; pointer-events: none; display: none; }
+  #notif-banner { display: none; background: #f1efe8; border: 1px solid #ddd; border-radius: 10px; padding: 0.65rem 1rem; margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  #notif-banner span { font-size: 13px; color: #555; flex: 1; }
+  #notif-banner button { background: #1a1a1a; color: #fff; border: none; border-radius: 8px; padding: 7px 12px; font-size: 13px; font-weight: 500; cursor: pointer; white-space: nowrap; touch-action: manipulation; }
 </style>
 </head>
 <body>
 <div class="wrap">
   <div id="error" class="error" style="display:none"></div>
+  <div id="notif-banner" style="display:none">
+    <span>🔔 Enable notifications for Iris reminders</span>
+    <button onclick="enableNotifications()">Enable</button>
+  </div>
   <div class="nav">
     <button id="btn-back" onclick="goBack()">‹</button>
     <div class="nav-label">
@@ -386,11 +393,38 @@ function connectWS() {
 setInterval(fetchEvents, 5000);
 connectWS();
 
-function initPush() {
+function urlBase64ToUint8Array(base64String) {
+  var padding = "=".repeat((4 - base64String.length % 4) % 4);
+  var base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  var raw = atob(base64);
+  var arr = new Uint8Array(raw.length);
+  for (var i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
+  return arr;
+}
+
+function checkNotifBanner() {
+  if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
+  if (Notification.permission === "granted") {
+    document.getElementById("notif-banner").style.display = "none";
+    initPushSilent();
+  } else if (Notification.permission === "denied") {
+    document.getElementById("notif-banner").style.display = "none";
+  } else {
+    document.getElementById("notif-banner").style.display = "flex";
+  }
+}
+
+function enableNotifications() {
   if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
   navigator.serviceWorker.register("/iris-tracker/sw.js").then(function(reg) {
     return Notification.requestPermission().then(function(permission) {
-      if (permission !== "granted") return;
+      if (permission !== "granted") {
+        showToast("Notifications blocked");
+        document.getElementById("notif-banner").style.display = "none";
+        return;
+      }
+      document.getElementById("notif-banner").style.display = "none";
+      showToast("Notifications enabled!");
       return reg.pushManager.getSubscription().then(function(existing) {
         var subPromise = existing ? Promise.resolve(existing) : reg.pushManager.subscribe({
           userVisibleOnly: true,
@@ -408,16 +442,25 @@ function initPush() {
   }).catch(function(e) { console.warn("Push init failed:", e); });
 }
 
-function urlBase64ToUint8Array(base64String) {
-  var padding = "=".repeat((4 - base64String.length % 4) % 4);
-  var base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
-  var raw = atob(base64);
-  var arr = new Uint8Array(raw.length);
-  for (var i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
-  return arr;
+function initPushSilent() {
+  navigator.serviceWorker.register("/iris-tracker/sw.js").then(function(reg) {
+    return reg.pushManager.getSubscription().then(function(existing) {
+      if (existing) return;
+      return reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array("BGPkobvdvjVn_YvVfpl4I7W5mlTHq1CCKmyu763MayupsPNhPtXEH-i0E6WUUHX72sfG5xqZ9JV7KsODtWYhpbU")
+      }).then(function(sub) {
+        return fetch(SUPABASE_URL + "/rest/v1/subscriptions", {
+          method: "POST",
+          headers: { apikey: SUPABASE_KEY, Authorization: "Bearer " + SUPABASE_KEY, "Content-Type": "application/json", Prefer: "resolution=merge-duplicates" },
+          body: JSON.stringify({ endpoint: sub.endpoint, subscription: JSON.stringify(sub) })
+        });
+      });
+    });
+  }).catch(function(e) { console.warn("Push silent init failed:", e); });
 }
 
-setTimeout(initPush, 3000);
+checkNotifBanner();
 </script>
 </body>
 </html>
