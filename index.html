@@ -13,8 +13,6 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f9f9f7; color: #1a1a1a; overflow: hidden; height: 100vh; }
   .wrap { max-width: 500px; margin: 0 auto; padding: 1.5rem 1rem; height: 100vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-  .header { display: flex; align-items: center; gap: 8px; margin-bottom: 1.25rem; }
-  .header h1 { font-size: 18px; font-weight: 500; }
   .error { background: #FCEBEB; border: 1px solid #F09595; border-radius: 10px; padding: 0.6rem 1rem; margin-bottom: 1rem; font-size: 13px; color: #A32D2D; }
   .nav { display: flex; align-items: center; justify-content: space-between; background: #f1efe8; border-radius: 12px; padding: 0.6rem 1rem; margin-bottom: 1.25rem; touch-action: pan-y; user-select: none; }
   .nav button { background: none; border: none; cursor: pointer; font-size: 20px; padding: 0 4px; color: #1a1a1a; }
@@ -32,30 +30,26 @@
   .ellipsis-btn { background: none; border: none; cursor: pointer; padding: 6px 8px; display: flex; flex-direction: column; gap: 3px; align-items: center; justify-content: center; }
   .dot { width: 3px; height: 3px; border-radius: 50%; background: #bbb; display: block; }
   .sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 50; display: none; }
-  .sheet { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-radius: 20px 20px 0 0; z-index: 51; padding: 0 0 2rem; transform: translateY(100%); transition: transform 0.25s ease; max-width: 500px; margin: 0 auto; }
+  .sheet { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-radius: 20px 20px 0 0; z-index: 51; padding: 1rem 0 0; transform: translateY(100%); transition: transform 0.25s ease; max-width: 500px; margin: 0 auto; }
   .sheet.open { transform: translateY(0); }
-  .sheet-handle { width: 36px; height: 4px; background: #e0e0e0; border-radius: 2px; margin: 12px auto 8px; }
   .sheet-btn { display: block; width: 100%; padding: 16px 20px; text-align: center; background: none; border: none; cursor: pointer; font-size: 16px; font-weight: 400; }
   .sheet-btn-edit { color: #1a1a1a; border-bottom: 0.5px solid #f0f0f0; }
   .sheet-btn-red { color: #C0392B; border-bottom: 0.5px solid #f0f0f0; }
-  .sheet-btn-cancel { color: #666; border-bottom: none; }
-  .edit-sheet { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-radius: 20px 20px 0 0; z-index: 51; padding: 0 1rem 2rem; transform: translateY(100%); transition: transform 0.25s ease; max-width: 500px; margin: 0 auto; }
+  .sheet-btn-cancel { color: #666; }
+  .edit-sheet { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-radius: 20px 20px 0 0; z-index: 51; padding: 1rem 1rem 2rem; transform: translateY(100%); transition: transform 0.25s ease; max-width: 500px; margin: 0 auto; }
   .edit-sheet.open { transform: translateY(0); }
   .edit-inputs { display: flex; gap: 8px; align-items: center; margin: 1rem 0; }
   .edit-input { flex: 1; padding: 12px; border: 0.5px solid #ddd; border-radius: 10px; font-size: 18px; text-align: center; }
   .edit-sep { font-size: 20px; color: #888; }
   .edit-select { padding: 12px; border: 0.5px solid #ddd; border-radius: 10px; font-size: 16px; }
-  .edit-btns { display: flex; gap: 8px; margin-top: 0.5rem; }
+  .edit-btns { display: flex; gap: 8px; }
   .edit-btn-cancel { flex: 1; padding: 14px; background: #f1efe8; border: none; border-radius: 12px; cursor: pointer; font-size: 15px; }
   .edit-btn-save { flex: 1; padding: 14px; background: #1a1a1a; color: #fff; border: none; border-radius: 12px; cursor: pointer; font-size: 15px; font-weight: 500; }
+  .toast { position: fixed; bottom: 4rem; left: 50%; transform: translateX(-50%); background: #1a1a1a; color: #fff; border-radius: 8px; padding: 7px 14px; font-size: 12px; z-index: 200; white-space: nowrap; pointer-events: none; display: none; }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="header">
-    <span style="font-size:24px">🐾</span>
-    <h1>Iris's Daily Tracker</h1>
-  </div>
   <div id="error" class="error" style="display:none"></div>
   <div class="nav">
     <button id="btn-back" onclick="goBack()">‹</button>
@@ -72,7 +66,6 @@
 <div class="sheet-overlay" id="overlay" onclick="closeAll()"></div>
 
 <div class="sheet" id="action-sheet">
-  <div class="sheet-handle"></div>
   <div id="sheet-header"></div>
   <button class="sheet-btn sheet-btn-edit" onclick="openEditSheet()">Edit time</button>
   <button class="sheet-btn sheet-btn-red" onclick="confirmDelete()">Delete</button>
@@ -80,8 +73,7 @@
 </div>
 
 <div class="edit-sheet" id="edit-sheet">
-  <div class="sheet-handle"></div>
-  <div style="font-size:16px;font-weight:500;padding:8px 0 0">Edit time</div>
+  <div style="font-size:16px;font-weight:500;padding:0 0 8px">Edit time</div>
   <div class="edit-inputs">
     <input class="edit-input" type="number" min="1" max="12" id="edit-hour" />
     <span class="edit-sep">:</span>
@@ -92,10 +84,12 @@
     </select>
   </div>
   <div class="edit-btns">
-    <button class="edit-btn-cancel" onclick="closeEditSheet()">Cancel</button>
+    <button class="edit-btn-cancel" onclick="closeAll()">Cancel</button>
     <button class="edit-btn-save" onclick="saveEdit()">Save</button>
   </div>
 </div>
+
+<div class="toast" id="toast"></div>
 
 <script>
 const SUPABASE_URL = "https://cvhntedxgzpwxlhehuck.supabase.co";
@@ -142,7 +136,7 @@ function buildRows(evts) {
     const next = sorted.slice(i+1).find(n => !used.has(n.id));
     const eG = e.action === "peed" || e.action === "pooped";
     const nG = next && (next.action === "peed" || next.action === "pooped");
-    if (eG && nG && (new Date(next.created_at) - new Date(e.created_at)) <= 60000) {
+    if (eG && nG && (new Date(next.created_at) - new Date(e.created_at)) <= 5 * 60000) {
       rows.push([e, next].sort((a,b) => a.action === "peed" ? -1 : 1));
       used.add(e.id); used.add(next.id);
     } else {
@@ -150,6 +144,28 @@ function buildRows(evts) {
     }
   }
   return rows.reverse();
+}
+
+function lastSince(actionId, allToday) {
+  if (daysAgo !== 0) return null;
+  const matches = allToday.filter(e => e.action === actionId);
+  if (!matches.length) return null;
+  const last = matches[matches.length - 1];
+  const ms = Date.now() - new Date(last.created_at).getTime();
+  const h = Math.floor(ms / 3600000);
+  const m = Math.floor((ms % 3600000) / 60000);
+  const label = h === 0 ? `${m}m ago` : m === 0 ? `${h}h ago` : `${h}h ${m}m ago`;
+  const hour = new Date().getHours();
+  const firstPeePoop = allToday.find(e => e.action === "peed" || e.action === "pooped");
+  const alert = (actionId === "peed" || actionId === "pooped") && !!firstPeePoop && ms > 4 * 3600000 && hour < 23;
+  return { label, alert };
+}
+
+function fedAlert(allToday) {
+  if (daysAgo !== 0) return false;
+  const hour = new Date().getHours();
+  const dinnerLogged = allToday.filter(e => e.action === "fed").length >= 2;
+  return hour >= 16 && !dinnerLogged;
 }
 
 async function fetchEvents() {
@@ -187,6 +203,7 @@ async function deleteActive() {
   await Promise.all(ids.map(id => fetch(`${SUPABASE_URL}/rest/v1/events?id=eq.${id}`, {
     method: "DELETE", headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
   })));
+  showToast("Event deleted");
   await fetchEvents();
 }
 
@@ -196,6 +213,13 @@ async function updateEventTime(id, newTs) {
     headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json" },
     body: JSON.stringify({ created_at: new Date(newTs).toISOString() })
   });
+}
+
+function showToast(msg) {
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.style.display = "block";
+  setTimeout(() => { el.style.display = "none"; }, 1500);
 }
 
 function openSheet(ids) {
@@ -212,7 +236,7 @@ function openSheet(ids) {
     return `${i > 0 ? '<span style="color:#333;font-size:9px;margin:0 6px">+</span>' : ''}<span style="color:${a?.color};font-weight:500">${a?.label}</span>`;
   }).join("");
   document.getElementById("sheet-header").innerHTML = `
-    <div style="display:flex;align-items:center;gap:10px;padding:8px 20px 12px;border-bottom:0.5px solid #f0f0f0;margin-bottom:4px">
+    <div style="display:flex;align-items:center;gap:10px;padding:0 16px 10px;border-bottom:0.5px solid #f0f0f0;margin-bottom:4px">
       <div style="display:flex;gap:4px">${iconsHtml}</div>
       <span style="flex:1;font-size:14px;display:flex;align-items:center">${labelsHtml}</span>
       <span style="font-size:12px;color:#555">${fmtTime(e.created_at)}</span>
@@ -243,8 +267,6 @@ function openEditSheet() {
   document.getElementById("edit-sheet").classList.add("open");
 }
 
-function closeEditSheet() { closeAll(); }
-
 async function saveEdit() {
   const h = parseInt(document.getElementById("edit-hour").value);
   const m = parseInt(document.getElementById("edit-minute").value);
@@ -260,6 +282,7 @@ async function saveEdit() {
   closeAll();
   render();
   await Promise.all(ids.map(id => updateEventTime(id, newTs)));
+  showToast("Time updated");
   await fetchEvents();
 }
 
@@ -277,13 +300,21 @@ function render() {
   document.getElementById("btn-back").disabled = daysAgo >= 6;
   document.getElementById("btn-fwd").disabled = daysAgo <= 0;
 
-  document.getElementById("actions").innerHTML = ACTIONS.map(a => `
-    <button class="action-btn" onclick="logAction('${a.id}')">
-      <div style="background:${a.bg};border:1.5px solid ${a.border};border-radius:12px;width:90px;height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;margin:0 auto;">
+  document.getElementById("actions").innerHTML = ACTIONS.map(a => {
+    const since = lastSince(a.id, allToday);
+    const alert = since?.alert || (a.id === "fed" && fedAlert(allToday));
+    const bg = alert ? "#FCEBEB" : a.bg;
+    const border = alert ? "2px solid #E24B4A" : `1.5px solid ${a.border}`;
+    const color = alert ? "#A32D2D" : a.color;
+    const subText = since ? `${alert ? "⚠️ " : ""}${since.label}` : (a.id === "fed" && fedAlert(allToday) ? "⚠️ dinner?" : "");
+    return `<button class="action-btn" onclick="logAction('${a.id}')">
+      <div style="background:${bg};border:${border};border-radius:12px;width:110px;height:110px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;margin:0 auto;">
         <span style="font-size:26px">${a.emoji}</span>
-        <span style="font-size:12px;font-weight:500;color:${a.color}">${counts[a.id]}</span>
+        <span style="font-size:12px;font-weight:500;color:${color}">${counts[a.id]}</span>
+        ${subText ? `<span style="font-size:10px;color:${color}">${subText}</span>` : ""}
       </div>
-    </button>`).join("");
+    </button>`;
+  }).join("");
 
   const tl = document.getElementById("timeline");
   if (!allToday.length) { tl.innerHTML = `<div class="empty">No events this day</div>`; return; }
