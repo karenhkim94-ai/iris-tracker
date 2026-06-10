@@ -394,8 +394,7 @@ navEl.addEventListener("touchend", e => {
 });
 
 fetchEvents();
-
-function connectWS() {
+initPush();
   const ws = new WebSocket(`wss://cvhntedxgzpwxlhehuck.supabase.co/realtime/v1/websocket?apikey=${SUPABASE_KEY}&vsn=1.0.0`);
   ws.onopen = () => ws.send(JSON.stringify({ topic:"realtime:public:events", event:"phx_join", payload:{}, ref:"1" }));
   ws.onmessage = (msg) => {
