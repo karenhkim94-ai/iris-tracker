@@ -1,99 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-<meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-title" content="Iris Daily Tracker" />
-<meta name="theme-color" content="#ffffff" />
-<link rel="apple-touch-icon" href="/iris-tracker/icon.png" />
-<link rel="manifest" href="/iris-tracker/manifest.json" />
-<title>Iris Daily Tracker</title>
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f9f9f7; color: #1a1a1a; overflow: hidden; height: 100vh; }
-  .wrap { max-width: 500px; margin: 0 auto; padding: 2rem 1rem 1.5rem; height: 100vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-  .error { background: #FCEBEB; border: 1px solid #F09595; border-radius: 10px; padding: 0.6rem 1rem; margin-bottom: 1rem; font-size: 13px; color: #A32D2D; }
-  .nav { display: flex; align-items: center; justify-content: space-between; background: #f1efe8; border-radius: 12px; padding: 0.6rem 1rem; margin-bottom: 1.25rem; touch-action: pan-y; user-select: none; }
-  .nav button { background: none; border: none; cursor: pointer; font-size: 20px; padding: 0 4px; color: #1a1a1a; }
-  .nav button:disabled { color: #bbb; cursor: default; }
-  .nav-label { text-align: center; }
-  .nav-label .day { font-size: 15px; font-weight: 500; }
-  .nav-label .count { font-size: 12px; color: #666; }
-  .actions { display: flex; gap: 8px; margin-bottom: 1.25rem; }
-  .action-btn { flex: 1; padding: 0; border: none; background: transparent; cursor: pointer; outline: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
-  .empty { text-align: center; padding: 2.5rem 0; color: #888; font-size: 14px; }
-  .event-row { display: flex; align-items: center; gap: 10px; background: #fff; border: 0.5px solid #e0e0e0; border-radius: 10px; padding: 0.55rem 0.9rem; margin-bottom: 4px; }
-  .event-icon { font-size: 16px; border-radius: 7px; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .event-label { flex: 1; font-size: 14px; font-weight: 500; }
-  .event-time { font-size: 12px; color: #555; }
-  .ellipsis-btn { background: none; border: none; cursor: pointer; padding: 6px 8px; display: flex; flex-direction: column; gap: 3px; align-items: center; justify-content: center; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
-  .dot { width: 3px; height: 3px; border-radius: 50%; background: #bbb; display: block; }
-  .sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 50; display: none; }
-  .sheet { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-radius: 20px 20px 0 0; z-index: 51; padding: 1rem 0 0; transform: translateY(100%); transition: transform 0.25s ease; max-width: 500px; margin: 0 auto; }
-  .sheet.open { transform: translateY(0); }
-  .sheet-btn { display: block; width: 100%; padding: 16px 20px; text-align: center; background: none; border: none; cursor: pointer; font-size: 16px; font-weight: 400; touch-action: manipulation; }
-  .sheet-btn-edit { color: #1a1a1a; border-bottom: 0.5px solid #f0f0f0; }
-  .sheet-btn-red { color: #C0392B; border-bottom: 0.5px solid #f0f0f0; }
-  .sheet-btn-cancel { color: #666; }
-  .edit-sheet { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-radius: 20px 20px 0 0; z-index: 51; padding: 1rem 1rem 2rem; transform: translateY(100%); transition: transform 0.25s ease; max-width: 500px; margin: 0 auto; }
-  .edit-sheet.open { transform: translateY(0); }
-  .edit-inputs { display: flex; gap: 8px; align-items: center; margin: 1rem 0; }
-  .edit-input { flex: 1; padding: 12px; border: 0.5px solid #ddd; border-radius: 10px; font-size: 18px; text-align: center; }
-  .edit-sep { font-size: 20px; color: #888; }
-  .edit-select { padding: 12px; border: 0.5px solid #ddd; border-radius: 10px; font-size: 16px; }
-  .edit-btns { display: flex; gap: 8px; }
-  .edit-btn-cancel { flex: 1; padding: 14px; background: #f1efe8; border: none; border-radius: 12px; cursor: pointer; font-size: 15px; }
-  .edit-btn-save { flex: 1; padding: 14px; background: #1a1a1a; color: #fff; border: none; border-radius: 12px; cursor: pointer; font-size: 15px; font-weight: 500; }
-  .toast { position: fixed; bottom: 4rem; left: 50%; transform: translateX(-50%); background: #1a1a1a; color: #fff; border-radius: 8px; padding: 7px 14px; font-size: 12px; z-index: 200; white-space: nowrap; pointer-events: none; display: none; }
-</style>
-</head>
-<body>
-<div class="wrap">
-  <div id="error" class="error" style="display:none"></div>
-  <div class="nav">
-    <button id="btn-back" onclick="goBack()">‹</button>
-    <div class="nav-label">
-      <div class="day" id="day-label">Today</div>
-      <div class="count" id="day-count">Loading…</div>
-    </div>
-    <button id="btn-fwd" onclick="goForward()" disabled>›</button>
-  </div>
-  <div class="actions" id="actions"></div>
-  <div id="timeline"></div>
-</div>
-
-<div class="sheet-overlay" id="overlay" onclick="closeAll()"></div>
-
-<div class="sheet" id="action-sheet">
-  <div id="sheet-header"></div>
-  <button class="sheet-btn sheet-btn-edit" onclick="openEditSheet()">Edit time</button>
-  <button class="sheet-btn sheet-btn-red" onclick="deleteActive()">Delete</button>
-  <button class="sheet-btn sheet-btn-cancel" onclick="closeAll()">Cancel</button>
-</div>
-
-<div class="edit-sheet" id="edit-sheet">
-  <div style="font-size:16px;font-weight:500;padding:0 0 8px">Edit time</div>
-  <div class="edit-inputs">
-    <input class="edit-input" type="number" min="1" max="12" id="edit-hour" />
-    <span class="edit-sep">:</span>
-    <input class="edit-input" type="number" min="0" max="59" id="edit-minute" />
-    <select class="edit-select" id="edit-ampm">
-      <option>AM</option>
-      <option>PM</option>
-    </select>
-  </div>
-  <div class="edit-btns">
-    <button class="edit-btn-cancel" onclick="closeAll()">Cancel</button>
-    <button class="edit-btn-save" onclick="saveEdit()">Save</button>
-  </div>
-</div>
-
-<div class="toast" id="toast"></div>
-
-<script>
-const SUPABASE_URL = "https://cvhntedxgzpwxlhehuck.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2aG50ZWR4Z3pwd3hsaGVodWNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwMjA5NDksImV4cCI6MjA5NTU5Njk0OX0.MLA6nZpN_WbLqslX5z9SYiq31tLeRYzWJoeVBxKp2rY";
+import { useState } from "react";
 
 const ACTIONS = [
   { id:"fed",    label:"Fed",    emoji:"🍖", color:"#BA7517", bg:"#FAEEDA", border:"#EF9F27" },
@@ -109,25 +14,35 @@ const TIME_BLOCKS = [
   { label:"Night",     start:0,  end:6  },
 ];
 
-let events = [], daysAgo = 0, activeIds = [];
-
-function dateKey(n) {
-  const d = new Date(); d.setDate(d.getDate() - n);
-  return d.toLocaleDateString("en-CA");
+const BASE = new Date("2026-05-30T00:00:00").getTime();
+function makeTs(daysAgo, h, m) {
+  return BASE - daysAgo * 86400000 + h * 3600000 + m * 60000;
 }
-function localDateStr(ts) { return new Date(ts).toLocaleDateString("en-CA"); }
+
+const SEED = [
+  { id:1, action:"fed",    ts:makeTs(0,7,15),  day:0 },
+  { id:2, action:"peed",   ts:makeTs(0,7,20),  day:0 },
+  { id:3, action:"pooped", ts:makeTs(0,7,21),  day:0 },
+  { id:4, action:"peed",   ts:makeTs(0,9,30),  day:0 },
+  { id:5, action:"fed",    ts:makeTs(0,13,0),  day:0 },
+  { id:6, action:"peed",   ts:makeTs(0,14,0),  day:0 },
+  { id:7, action:"fed",    ts:makeTs(0,18,0),  day:0 },
+  { id:8, action:"peed",   ts:makeTs(0,20,5),  day:0 },
+  { id:9, action:"pooped", ts:makeTs(0,20,6),  day:0 },
+];
+let nextId = 100;
+
+function fmtTime(ts) {
+  return new Date(ts).toLocaleTimeString("en-US", { hour:"numeric", minute:"2-digit", hour12:true });
+}
 function fmtDayLabel(n) {
   if (n === 0) return "Today";
   if (n === 1) return "Yesterday";
   const d = new Date(); d.setDate(d.getDate() - n);
   return d.toLocaleDateString("en-US", { weekday:"long", month:"short", day:"numeric" });
 }
-function fmtTime(ts) {
-  return new Date(ts).toLocaleTimeString("en-US", { hour:"numeric", minute:"2-digit", hour12:true });
-}
-
 function buildRows(evts) {
-  const sorted = evts.slice().sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
+  const sorted = evts.slice().sort((a,b) => a.ts - b.ts);
   const used = new Set();
   const rows = [];
   for (let i = 0; i < sorted.length; i++) {
@@ -136,7 +51,7 @@ function buildRows(evts) {
     const next = sorted.slice(i+1).find(n => !used.has(n.id));
     const eG = e.action === "peed" || e.action === "pooped";
     const nG = next && (next.action === "peed" || next.action === "pooped");
-    if (eG && nG && (new Date(next.created_at) - new Date(e.created_at)) <= 5 * 60000) {
+    if (eG && nG && (next.ts - e.ts) <= 5 * 60000) {
       rows.push([e, next].sort((a,b) => a.action === "peed" ? -1 : 1));
       used.add(e.id); used.add(next.id);
     } else {
@@ -146,273 +61,235 @@ function buildRows(evts) {
   return rows.reverse();
 }
 
-function lastSince(actionId, allToday) {
-  if (daysAgo !== 0) return null;
-  const matches = allToday.filter(e => e.action === actionId);
-  if (!matches.length) return null;
-  const last = matches[matches.length - 1];
-  const ms = Date.now() - new Date(last.created_at).getTime();
-  const h = Math.floor(ms / 3600000);
-  const m = Math.floor((ms % 3600000) / 60000);
-  const label = h === 0 ? m + "m ago" : m === 0 ? h + "h ago" : h + "h " + m + "m ago";
-  const hour = new Date().getHours();
-  const firstPeePoop = allToday.find(e => e.action === "peed" || e.action === "pooped");
-  const alert = (actionId === "peed" || actionId === "pooped") && !!firstPeePoop && ms > 4 * 3600000 && hour < 23;
-  return { label, alert };
-}
+function BottomSheet({ ids, events, onClose, onDelete, onEditSave }) {
+  const [mode, setMode] = useState("menu");
+  const e = events.find(ev => ev.id === ids[0]);
+  const d = new Date(e.ts);
+  const initH = d.getHours();
+  const [hour, setHour] = useState(initH === 0 ? 12 : initH > 12 ? initH - 12 : initH);
+  const [minute, setMinute] = useState(d.getMinutes());
+  const [ampm, setAmpm] = useState(initH >= 12 ? "PM" : "AM");
 
-function fedAlert(allToday) {
-  if (daysAgo !== 0) return false;
-  const hour = new Date().getHours();
-  return hour >= 16 && allToday.filter(e => e.action === "fed").length < 2;
-}
-
-async function fetchEvents() {
-  const from = new Date(); from.setDate(from.getDate() - 6); from.setHours(0,0,0,0);
-  try {
-    const res = await fetch(
-      SUPABASE_URL + "/rest/v1/events?select=*&created_at=gte." + from.toISOString() + "&order=created_at.asc",
-      { headers: { apikey: SUPABASE_KEY, Authorization: "Bearer " + SUPABASE_KEY, Accept: "application/json" } }
-    );
-    if (!res.ok) throw new Error(await res.text());
-    events = await res.json();
-    document.getElementById("error").style.display = "none";
-  } catch(e) {
-    document.getElementById("error").textContent = "Couldn't load events: " + e.message;
-    document.getElementById("error").style.display = "block";
+  function saveEdit() {
+    let h = parseInt(hour);
+    if (ampm === "PM" && h !== 12) h += 12;
+    if (ampm === "AM" && h === 12) h = 0;
+    const newTs = new Date(e.ts); newTs.setHours(h, parseInt(minute), 0, 0);
+    onEditSave(ids, newTs.getTime());
   }
-  render();
+
+  return (
+    <div style={{ position:"fixed", inset:0, zIndex:50 }}>
+      <div onClick={onClose} style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.3)" }} />
+      <div style={{ position:"absolute", bottom:0, left:0, right:0, background:"#fff", borderRadius:"20px 20px 0 0", maxWidth:500, margin:"0 auto", paddingTop:"1rem" }}>
+        {mode === "menu" ? (
+          <>
+            <div style={{ display:"flex", alignItems:"center", gap:8, padding:"0 16px 10px", borderBottom:"0.5px solid #f0f0f0", marginBottom:4 }}>
+              <div style={{ display:"flex", gap:4 }}>
+                {ids.map(id => {
+                  const ev = events.find(ev => ev.id === id);
+                  const a = actionMap[ev?.action];
+                  return <span key={id} style={{ fontSize:16, background:a?.bg, borderRadius:7, width:30, height:30, display:"flex", alignItems:"center", justifyContent:"center" }}>{a?.emoji}</span>;
+                })}
+              </div>
+              <span style={{ flex:1, fontSize:14, fontWeight:500, display:"flex", alignItems:"center" }}>
+                {ids.map((id, i) => {
+                  const ev = events.find(ev => ev.id === id);
+                  const a = actionMap[ev?.action];
+                  return <span key={id} style={{ color:a?.color }}>{i > 0 && <span style={{ color:"#333", fontSize:9, margin:"0 6px" }}>+</span>}{a?.label}</span>;
+                })}
+              </span>
+              <span style={{ fontSize:12, color:"#555" }}>{fmtTime(e.ts)}</span>
+            </div>
+            <button onClick={() => setMode("edit")} style={{ display:"block", width:"100%", padding:"16px 20px", textAlign:"center", background:"none", border:"none", cursor:"pointer", fontSize:16, fontWeight:400, borderBottom:"0.5px solid #f5f5f5" }}>Edit time</button>
+            <button onClick={() => onDelete(ids)} style={{ display:"block", width:"100%", padding:"16px 20px", textAlign:"center", background:"none", border:"none", cursor:"pointer", fontSize:16, fontWeight:400, color:"#C0392B", borderBottom:"0.5px solid #f5f5f5" }}>Delete</button>
+            <button onClick={onClose} style={{ display:"block", width:"100%", padding:"16px 20px", textAlign:"center", background:"none", border:"none", cursor:"pointer", fontSize:16, fontWeight:400, color:"#666" }}>Cancel</button>
+          </>
+        ) : (
+          <div style={{ padding:"0 1rem 1rem" }}>
+            <div style={{ fontSize:16, fontWeight:500, padding:"0 0 8px" }}>Edit time</div>
+            <div style={{ display:"flex", gap:8, alignItems:"center", margin:"1rem 0" }}>
+              <input type="number" min="1" max="12" value={hour} onChange={e => setHour(e.target.value)}
+                style={{ flex:1, padding:12, border:"0.5px solid #ddd", borderRadius:10, fontSize:18, textAlign:"center" }} />
+              <span style={{ fontSize:20, color:"#888" }}>:</span>
+              <input type="number" min="0" max="59" value={String(minute).padStart(2,"0")} onChange={e => setMinute(e.target.value)}
+                style={{ flex:1, padding:12, border:"0.5px solid #ddd", borderRadius:10, fontSize:18, textAlign:"center" }} />
+              <select value={ampm} onChange={e => setAmpm(e.target.value)}
+                style={{ padding:12, border:"0.5px solid #ddd", borderRadius:10, fontSize:16 }}>
+                <option>AM</option><option>PM</option>
+              </select>
+            </div>
+            <div style={{ display:"flex", gap:8 }}>
+              <button onClick={() => setMode("menu")} style={{ flex:1, padding:14, background:"#f1efe8", border:"none", borderRadius:12, cursor:"pointer", fontSize:15 }}>Back</button>
+              <button onClick={saveEdit} style={{ flex:1, padding:14, background:"#1a1a1a", color:"#fff", border:"none", borderRadius:12, cursor:"pointer", fontSize:15, fontWeight:500 }}>Save</button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
-async function logAction(actionId) {
-  const res = await fetch(SUPABASE_URL + "/rest/v1/events", {
-    method: "POST",
-    headers: { apikey: SUPABASE_KEY, Authorization: "Bearer " + SUPABASE_KEY, "Content-Type": "application/json", Prefer: "return=representation" },
-    body: JSON.stringify({ action: actionId })
-  });
-  const data = await res.json();
-  if (data[0]) {
-    events.push(data[0]);
-    render();
-    notifyAction(actionId);
+function Toast({ msg }) {
+  return (
+    <div style={{ position:"fixed", bottom:"4rem", left:"50%", transform:"translateX(-50%)", background:"#1a1a1a", color:"#fff", borderRadius:8, padding:"7px 14px", fontSize:12, zIndex:200, whiteSpace:"nowrap", pointerEvents:"none" }}>
+      {msg}
+    </div>
+  );
+}
+
+export default function App() {
+  const [daysAgo, setDaysAgo] = useState(0);
+  const [events, setEvents] = useState(SEED);
+  const [sheet, setSheet] = useState(null);
+  const [toast, setToast] = useState(null);
+
+  function showToast(msg) {
+    setToast(msg);
+    setTimeout(() => setToast(null), 1500);
   }
+
+  const dayEvents = events.filter(e => e.day === daysAgo).slice().sort((a,b) => a.ts - b.ts);
+  const counts = Object.fromEntries(ACTIONS.map(a => [a.id, dayEvents.filter(e => e.action === a.id).length]));
+  const fedEvents = dayEvents.filter(e => e.action === "fed");
+
+  function lastSince(actionId) {
+    if (daysAgo !== 0) return null;
+    const matches = dayEvents.filter(e => e.action === actionId);
+    if (!matches.length) return null;
+    const last = matches[matches.length - 1];
+    const ms = Date.now() - last.ts;
+    const h = Math.floor(ms / 3600000);
+    const m = Math.floor((ms % 3600000) / 60000);
+    const label = h === 0 ? `${m}m ago` : m === 0 ? `${h}h ago` : `${h}h ${m}m ago`;
+    const hour = new Date().getHours();
+    const firstPeePoop = dayEvents.find(e => e.action === "peed" || e.action === "pooped");
+    const watchStarted = !!firstPeePoop;
+    const alert = (actionId === "peed" || actionId === "pooped") && watchStarted && ms > 4 * 3600000 && hour < 23;
+    return { label, alert };
+  }
+
+  function fedAlert() {
+    if (daysAgo !== 0) return false;
+    const hour = new Date().getHours();
+    const dinnerLogged = dayEvents.filter(e => e.action === "fed").length >= 2;
+    return hour >= 16 && !dinnerLogged;
+  }
+
+  const visibleBlocks = TIME_BLOCKS.map(block => {
+    const blockEvts = dayEvents.filter(e => new Date(e.ts).getHours() >= block.start && new Date(e.ts).getHours() < block.end);
+    if (!blockEvts.length) return null;
+    return { label: block.label, rows: buildRows(blockEvts) };
+  }).filter(Boolean);
+
+  function logAction(actionId) {
+    setEvents(prev => [...prev, { id: nextId++, action: actionId, ts: Date.now(), day: daysAgo }]);
+  }
+  function deleteIds(ids) {
+    setEvents(prev => prev.filter(e => !ids.includes(e.id)));
+    setSheet(null);
+    showToast("Event deleted");
+  }
+  function saveEdit(ids, newTs) {
+    setEvents(prev => prev.map(e => ids.includes(e.id) ? { ...e, ts: newTs } : e));
+    setSheet(null);
+    showToast("Time updated");
+  }
+
+  return (
+    <div style={{ maxWidth:500, margin:"0 auto", padding:"2rem 1rem 1.5rem", fontFamily:"var(--font-sans)", background:"#f9f9f7", minHeight:"100vh" }}>
+
+      {toast && <Toast msg={toast} />}
+      {sheet && <BottomSheet ids={sheet} events={events} onClose={() => setSheet(null)} onDelete={deleteIds} onEditSave={saveEdit} />}
+
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", background:"#f1efe8", borderRadius:12, padding:"0.6rem 1rem", marginBottom:"1.25rem" }}>
+        <button onClick={() => setDaysAgo(d => Math.min(d+1,6))} disabled={daysAgo>=6}
+          style={{ background:"none", border:"none", fontSize:20, color:daysAgo<6?"#1a1a1a":"#bbb", cursor:daysAgo<6?"pointer":"default" }}>‹</button>
+        <div style={{ textAlign:"center" }}>
+          <div style={{ fontSize:15, fontWeight:500 }}>{fmtDayLabel(daysAgo)}</div>
+          <div style={{ fontSize:12, color:"#666" }}>{dayEvents.length} events</div>
+        </div>
+        <button onClick={() => setDaysAgo(d => Math.max(d-1,0))} disabled={daysAgo<=0}
+          style={{ background:"none", border:"none", fontSize:20, color:daysAgo>0?"#1a1a1a":"#bbb", cursor:daysAgo>0?"pointer":"default" }}>›</button>
+      </div>
+
+      <div style={{ display:"flex", gap:8, marginBottom:"1.25rem" }}>
+        {ACTIONS.map(a => {
+          const since = lastSince(a.id);
+          const alert = since?.alert || (a.id === "fed" && fedAlert());
+          return (
+            <button key={a.id} onClick={() => logAction(a.id)}
+              style={{ flex:1, padding:0, border:"none", background:"transparent", cursor:"pointer", outline:"none" }}>
+              <div style={{ background: alert ? "#FCEBEB" : a.bg, border: alert ? `2px solid #E24B4A` : `1.5px solid ${a.border}`, borderRadius:12, width:110, height:110, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"space-evenly", margin:"0 auto", padding:"10px 0" }}>
+                <span style={{ fontSize:26 }}>{a.emoji}</span>
+                <span style={{ fontSize:12, fontWeight:500, color: alert ? "#A32D2D" : a.color, marginTop:2 }}>{counts[a.id]}</span>
+                <div style={{ flex:1 }} />
+                {(since || (a.id === "fed" && fedAlert())) && (
+                  <span style={{ fontSize:10, color: alert ? "#A32D2D" : a.color, opacity: alert ? 1 : 0.7, marginBottom:2 }}>
+                    {alert && "⚠️ "}{since ? since.label : "dinner?"}
+                  </span>
+                )}
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+      {visibleBlocks.length === 0 ? (
+        <div style={{ textAlign:"center", padding:"2.5rem 0", color:"#888", fontSize:14 }}>No events this day</div>
+      ) : visibleBlocks.map((block, i) => (
+        <div key={block.label}>
+          <div style={{ display:"flex", alignItems:"center", gap:8, padding:"12px 0 6px" }}>
+            <span style={{ fontSize:14, fontWeight:600, color:"#444", whiteSpace:"nowrap" }}>{block.label}</span>
+            <div style={{ flex:1, height:"0.5px", background:"#e0e0e0" }} />
+          </div>
+          {block.rows.map((row, ri) => {
+            const ids = row.map(e => e.id);
+            if (row.length === 1) {
+              const e = row[0]; const a = actionMap[e.action];
+              let sub = "";
+              if (e.action === "fed") {
+                const idx = fedEvents.findIndex(f => f.id === e.id);
+                if (idx === 0) sub = " · Breakfast";
+                else if (idx === 1) sub = " · Dinner";
+              }
+              return (
+                <div key={e.id} style={{ display:"flex", alignItems:"center", gap:10, background:"#fff", border:"0.5px solid #e0e0e0", borderRadius:10, padding:"0.55rem 0.9rem", marginBottom:4 }}>
+                  <span style={{ fontSize:16, background:a.bg, borderRadius:7, width:30, height:30, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>{a.emoji}</span>
+                  <span style={{ flex:1, fontSize:14, fontWeight:500, color:a.color }}>{a.label}{sub}</span>
+                  <span style={{ fontSize:12, color:"#555" }}>{fmtTime(e.ts)}</span>
+                  <button onClick={() => setSheet(ids)} style={{ background:"none", border:"none", cursor:"pointer", padding:"6px 8px", display:"flex", flexDirection:"column", gap:"3px", alignItems:"center" }}>
+                    <span style={{ width:3, height:3, borderRadius:"50%", background:"#bbb", display:"block" }} />
+                    <span style={{ width:3, height:3, borderRadius:"50%", background:"#bbb", display:"block" }} />
+                    <span style={{ width:3, height:3, borderRadius:"50%", background:"#bbb", display:"block" }} />
+                  </button>
+                </div>
+              );
+            }
+            return (
+              <div key={ri} style={{ display:"flex", alignItems:"center", gap:10, background:"#fff", border:"0.5px solid #e0e0e0", borderRadius:10, padding:"0.55rem 0.9rem", marginBottom:4 }}>
+                <div style={{ display:"flex", gap:4, flexShrink:0 }}>
+                  {row.map(e => <span key={e.id} style={{ fontSize:16, background:actionMap[e.action].bg, borderRadius:7, width:30, height:30, display:"flex", alignItems:"center", justifyContent:"center" }}>{actionMap[e.action].emoji}</span>)}
+                </div>
+                <span style={{ flex:1, fontSize:14, fontWeight:500, display:"flex", alignItems:"center" }}>
+                  {row.map((e, i) => (
+                    <span key={e.id} style={{ display:"flex", alignItems:"center" }}>
+                      {i > 0 && <span style={{ color:"#333", fontSize:9, margin:"0 6px" }}>+</span>}
+                      <span style={{ color:actionMap[e.action].color }}>{actionMap[e.action].label}</span>
+                    </span>
+                  ))}
+                </span>
+                <span style={{ fontSize:12, color:"#555" }}>{fmtTime(row[0].ts)}</span>
+                <button onClick={() => setSheet(ids)} style={{ background:"none", border:"none", cursor:"pointer", padding:"6px 8px", display:"flex", flexDirection:"column", gap:"3px", alignItems:"center" }}>
+                  <span style={{ width:3, height:3, borderRadius:"50%", background:"#bbb", display:"block" }} />
+                  <span style={{ width:3, height:3, borderRadius:"50%", background:"#bbb", display:"block" }} />
+                  <span style={{ width:3, height:3, borderRadius:"50%", background:"#bbb", display:"block" }} />
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      ))}
+    </div>
+  );
 }
-
-async function notifyAction(actionId) {
-  const a = actionMap[actionId];
-  if (!a || !("serviceWorker" in navigator)) return;
-  try {
-    const reg = await navigator.serviceWorker.ready;
-    reg.showNotification(a.emoji + " " + a.label + " logged", {
-      body: actionId === "fed" ? "I just ate!" : "I just " + a.label.toLowerCase() + "ed!",
-      icon: "/iris-tracker/icon.png"
-    });
-  } catch(e) {}
-}
-
-async function deleteActive() {
-  const ids = [...activeIds];
-  closeAll();
-  events = events.filter(e => !ids.includes(e.id));
-  render();
-  await Promise.all(ids.map(id => fetch(SUPABASE_URL + "/rest/v1/events?id=eq." + id, {
-    method: "DELETE", headers: { apikey: SUPABASE_KEY, Authorization: "Bearer " + SUPABASE_KEY }
-  })));
-  showToast("Event deleted");
-  fetchEvents();
-}
-
-async function updateEventTime(id, newTs) {
-  await fetch(SUPABASE_URL + "/rest/v1/events?id=eq." + id, {
-    method: "PATCH",
-    headers: { apikey: SUPABASE_KEY, Authorization: "Bearer " + SUPABASE_KEY, "Content-Type": "application/json" },
-    body: JSON.stringify({ created_at: new Date(newTs).toISOString() })
-  });
-}
-
-function showToast(msg) {
-  const el = document.getElementById("toast");
-  el.textContent = msg;
-  el.style.display = "block";
-  setTimeout(function() { el.style.display = "none"; }, 1500);
-}
-
-function openSheet(ids) {
-  activeIds = ids;
-  const e = events.find(function(ev) { return ev.id === ids[0]; });
-  const iconsHtml = ids.map(function(id) {
-    const ev = events.find(function(ev) { return ev.id === id; });
-    const a = actionMap[ev && ev.action];
-    return '<span class="event-icon" style="background:' + (a && a.bg) + '">' + (a && a.emoji) + '</span>';
-  }).join("");
-  const labelsHtml = ids.map(function(id, i) {
-    const ev = events.find(function(ev) { return ev.id === id; });
-    const a = actionMap[ev && ev.action];
-    return (i > 0 ? '<span style="color:#333;font-size:9px;margin:0 6px">+</span>' : '') + '<span style="color:' + (a && a.color) + ';font-weight:500">' + (a && a.label) + '</span>';
-  }).join("");
-  document.getElementById("sheet-header").innerHTML =
-    '<div style="display:flex;align-items:center;gap:10px;padding:0 16px 10px;border-bottom:0.5px solid #f0f0f0;margin-bottom:4px">' +
-    '<div style="display:flex;gap:4px">' + iconsHtml + '</div>' +
-    '<span style="flex:1;font-size:14px;display:flex;align-items:center">' + labelsHtml + '</span>' +
-    '<span style="font-size:12px;color:#555">' + fmtTime(e.created_at) + '</span></div>';
-  document.getElementById("overlay").style.display = "block";
-  document.getElementById("action-sheet").classList.add("open");
-}
-
-function closeAll() {
-  document.getElementById("overlay").style.display = "none";
-  document.getElementById("action-sheet").classList.remove("open");
-  document.getElementById("edit-sheet").classList.remove("open");
-}
-
-function openEditSheet() {
-  const e = events.find(function(ev) { return ev.id === activeIds[0]; });
-  const d = new Date(e.created_at);
-  const h = d.getHours();
-  document.getElementById("edit-hour").value = h === 0 ? 12 : h > 12 ? h - 12 : h;
-  document.getElementById("edit-minute").value = String(d.getMinutes()).padStart(2, "0");
-  document.getElementById("edit-ampm").value = h >= 12 ? "PM" : "AM";
-  document.getElementById("action-sheet").classList.remove("open");
-  document.getElementById("edit-sheet").classList.add("open");
-}
-
-async function saveEdit() {
-  const h = parseInt(document.getElementById("edit-hour").value);
-  const m = parseInt(document.getElementById("edit-minute").value);
-  const ampm = document.getElementById("edit-ampm").value;
-  let hour = h;
-  if (ampm === "PM" && h !== 12) hour += 12;
-  if (ampm === "AM" && h === 12) hour = 0;
-  const base = new Date(events.find(function(e) { return e.id === activeIds[0]; }).created_at);
-  base.setHours(hour, m, 0, 0);
-  const newTs = base.getTime();
-  const ids = activeIds.slice();
-  events = events.map(function(e) { return ids.includes(e.id) ? Object.assign({}, e, { created_at: new Date(newTs).toISOString() }) : e; });
-  closeAll();
-  render();
-  await Promise.all(ids.map(function(id) { return updateEventTime(id, newTs); }));
-  showToast("Time updated");
-  fetchEvents();
-}
-
-function goBack()    { if (daysAgo < 6) { daysAgo++; render(); } }
-function goForward() { if (daysAgo > 0) { daysAgo--; render(); } }
-
-function render() {
-  const cur = dateKey(daysAgo);
-  const allToday = events.filter(function(e) { return localDateStr(e.created_at) === cur; }).sort(function(a,b) { return new Date(a.created_at) - new Date(b.created_at); });
-  const counts = {};
-  ACTIONS.forEach(function(a) { counts[a.id] = allToday.filter(function(e) { return e.action === a.id; }).length; });
-  const fedEvents = allToday.filter(function(e) { return e.action === "fed"; });
-
-  document.getElementById("day-label").textContent = fmtDayLabel(daysAgo);
-  document.getElementById("day-count").textContent = allToday.length + " events";
-  document.getElementById("btn-back").disabled = daysAgo >= 6;
-  document.getElementById("btn-fwd").disabled = daysAgo <= 0;
-
-  document.getElementById("actions").innerHTML = ACTIONS.map(function(a) {
-    const since = lastSince(a.id, allToday);
-    const alert = (since && since.alert) || (a.id === "fed" && fedAlert(allToday));
-    const bg = alert ? "#FCEBEB" : a.bg;
-    const border = alert ? "2px solid #E24B4A" : "1.5px solid " + a.border;
-    const color = alert ? "#A32D2D" : a.color;
-    const subText = since ? ((alert ? "⚠️ " : "") + since.label) : (a.id === "fed" && fedAlert(allToday) ? "⚠️ dinner?" : "");
-    return '<button class="action-btn" onclick="logAction(\'' + a.id + '\')">' +
-      '<div style="background:' + bg + ';border:' + border + ';border-radius:12px;width:110px;height:110px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;margin:0 auto;padding:8px 0">' +
-      '<span style="font-size:26px">' + a.emoji + '</span>' +
-      '<span style="font-size:12px;font-weight:500;color:' + color + '">' + counts[a.id] + '</span>' +
-      '<div style="flex:1"></div>' +
-      (subText ? '<span style="font-size:10px;color:' + color + ';margin-bottom:2px">' + subText + '</span>' : '') +
-      '</div></button>';
-  }).join("");
-
-  const tl = document.getElementById("timeline");
-  if (!allToday.length) { tl.innerHTML = '<div class="empty">No events this day</div>'; return; }
-
-  let html = "";
-  TIME_BLOCKS.forEach(function(block) {
-    const blockEvts = allToday.filter(function(e) { const h = new Date(e.created_at).getHours(); return h >= block.start && h < block.end; });
-    if (!blockEvts.length) return;
-    const rows = buildRows(blockEvts);
-    if (!rows.length) return;
-    html += '<div style="display:flex;align-items:center;gap:8px;padding:12px 0 6px"><span style="font-size:14px;font-weight:600;color:#444;white-space:nowrap">' + block.label + '</span><div style="flex:1;height:0.5px;background:#e0e0e0"></div></div>';
-    rows.forEach(function(row) {
-      const ids = row.map(function(e) { return e.id; });
-      const idsStr = ids.map(function(id) { return "'" + id + "'"; }).join(",");
-      if (row.length === 1) {
-        const e = row[0]; const a = actionMap[e.action]; if (!a) return;
-        let sub = "";
-        if (e.action === "fed") {
-          const idx = fedEvents.findIndex(function(f) { return f.id === e.id; });
-          if (idx === 0) sub = " · Breakfast";
-          else if (idx === 1) sub = " · Dinner";
-        }
-        html += '<div class="event-row"><span class="event-icon" style="background:' + a.bg + '">' + a.emoji + '</span><span class="event-label" style="color:' + a.color + '">' + a.label + sub + '</span><span class="event-time">' + fmtTime(e.created_at) + '</span><button class="ellipsis-btn" onclick="openSheet([' + idsStr + '])"><span class="dot"></span><span class="dot"></span><span class="dot"></span></button></div>';
-      } else {
-        html += '<div class="event-row"><div style="display:flex;gap:4px;flex-shrink:0">' +
-          row.map(function(e) { return '<span class="event-icon" style="background:' + actionMap[e.action].bg + '">' + actionMap[e.action].emoji + '</span>'; }).join("") +
-          '</div><span class="event-label" style="display:flex;align-items:center">' +
-          row.map(function(e, i) { return (i > 0 ? '<span style="color:#333;font-size:9px;margin:0 6px">+</span>' : '') + '<span style="color:' + actionMap[e.action].color + '">' + actionMap[e.action].label + '</span>'; }).join("") +
-          '</span><span class="event-time">' + fmtTime(row[0].created_at) + '</span><button class="ellipsis-btn" onclick="openSheet([' + idsStr + '])"><span class="dot"></span><span class="dot"></span><span class="dot"></span></button></div>';
-      }
-    });
-  });
-  tl.innerHTML = html || '<div class="empty">No events this day</div>';
-}
-
-let touchStartX = 0;
-const navEl = document.querySelector(".nav");
-navEl.addEventListener("touchstart", function(e) { touchStartX = e.touches[0].clientX; }, { passive: true });
-navEl.addEventListener("touchend", function(e) {
-  const diff = touchStartX - e.changedTouches[0].clientX;
-  if (Math.abs(diff) < 40) return;
-  if (diff < 0 && daysAgo < 6) { daysAgo++; render(); }
-  else if (diff > 0 && daysAgo > 0) { daysAgo--; render(); }
-});
-
-fetchEvents();
-
-function connectWS() {
-  const ws = new WebSocket("wss://cvhntedxgzpwxlhehuck.supabase.co/realtime/v1/websocket?apikey=" + SUPABASE_KEY + "&vsn=1.0.0");
-  ws.onopen = function() { ws.send(JSON.stringify({ topic:"realtime:public:events", event:"phx_join", payload:{}, ref:"1" })); };
-  ws.onmessage = function(msg) {
-    const data = JSON.parse(msg.data);
-    if (data.event === "INSERT") { events.push(data.payload.record); render(); }
-    else if (data.event === "DELETE") { events = events.filter(function(e) { return e.id !== data.payload.old_record.id; }); render(); }
-  };
-  ws.onclose = function() { setTimeout(connectWS, 3000); };
-  ws.onerror = function() { ws.close(); };
-}
-setInterval(fetchEvents, 5000);
-connectWS();
-
-async function initPush() {
-  if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
-  try {
-    const reg = await navigator.serviceWorker.register("/iris-tracker/sw.js");
-    const permission = await Notification.requestPermission();
-    if (permission !== "granted") return;
-    const existing = await reg.pushManager.getSubscription();
-    const sub = existing || await reg.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array("BGPkobvdvjVn_YvVfpl4I7W5mlTHq1CCKmyu763MayupsPNhPtXEH-i0E6WUUHX72sfG5xqZ9JV7KsODtWYhpbU")
-    });
-    await fetch(SUPABASE_URL + "/rest/v1/subscriptions", {
-      method: "POST",
-      headers: { apikey: SUPABASE_KEY, Authorization: "Bearer " + SUPABASE_KEY, "Content-Type": "application/json", Prefer: "resolution=merge-duplicates" },
-      body: JSON.stringify({ endpoint: sub.endpoint, subscription: JSON.stringify(sub) })
-    });
-  } catch(e) { console.warn("Push init failed:", e); }
-}
-
-function urlBase64ToUint8Array(base64String) {
-  const padding = "=".repeat((4 - base64String.length % 4) % 4);
-  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
-  const raw = atob(base64);
-  return Uint8Array.from([...raw].map(function(c) { return c.charCodeAt(0); }));
-}
-
-setTimeout(initPush, 3000);
-</script>
-</body>
-</html>
