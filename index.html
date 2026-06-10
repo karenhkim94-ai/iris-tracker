@@ -192,7 +192,23 @@ async function logAction(actionId) {
     body: JSON.stringify({ action: actionId })
   });
   const data = await res.json();
-  if (data[0]) { events.push(data[0]); render(); }
+  if (data[0]) {
+    events.push(data[0]);
+    render();
+    sendPushNotification(actionId);
+  }
+}
+
+async function sendPushNotification(actionId) {
+  const a = actionMap[actionId];
+  if (!a) return;
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    reg.showNotification(`${a.emoji} ${a.label} logged`, {
+      body: actionId === "fed" ? "I just ate!" : `I just ${a.label.toLowerCase()}ed!`,
+      icon: "/iris-tracker/icon.png",
+    });
+  } catch(e) { console.warn("Notification failed:", e); }
 }
 
 async function deleteActive() {
@@ -419,7 +435,7 @@ function urlBase64ToUint8Array(base64String) {
   return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
 }
 
-window.addEventListener("load", () => setTimeout(initPush, 1000));
+window.addEventListener("load", () => setTimeout(initPush, 2000));
 </script>
 </body>
 </html>
