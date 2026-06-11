@@ -210,15 +210,9 @@ function notifyAction(actionId) {
   if (!a || Notification.permission !== "granted") return;
   var title = a.emoji + " " + a.label + " logged";
   var body = actionId === "fed" ? "I just ate!" : "I just " + a.label.toLowerCase() + "ed!";
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.ready.then(function(reg) {
-      reg.showNotification(title, { body: body, icon: "/iris-tracker/icon.png" });
-    }).catch(function() {
-      new Notification(title, { body: body, icon: "/iris-tracker/icon.png" });
-    });
-  } else {
-    new Notification(title, { body: body, icon: "/iris-tracker/icon.png" });
-  }
+  navigator.serviceWorker.ready.then(function(reg) {
+    reg.active.postMessage({ type: "NOTIFY", title: title, body: body });
+  }).catch(function() {});
 }
 
 function deleteActive() {
