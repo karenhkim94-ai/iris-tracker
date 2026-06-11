@@ -69,8 +69,8 @@
     .event-label-peed { color: #5da8e8 !important; }
     .event-label-pooped { color: #7dc44a !important; }
     .sheet { background: #1e1e1c; }
-    .sheet-btn-edit { color: #f0ede6; border-bottom-color: #2e2e2c; }
-    .sheet-btn-red { color: #e05555; border-bottom-color: #2e2e2c; }
+    .sheet-btn-edit { color: #f0ede6; border-bottom-color: #333; }
+    .sheet-btn-red { color: #e05555; border-bottom-color: #333; }
     .sheet-btn-cancel { color: #888; }
     .edit-sheet { background: #1e1e1c; }
     .edit-input { background: #2a2a28; border-color: #3a3a38; color: #f0ede6; }
@@ -286,7 +286,7 @@ function openSheet(ids) {
     return (i > 0 ? '<span style="color:#333;font-size:9px;margin:0 6px">+</span>' : '') + '<span style="color:' + (a && a.color) + ';font-weight:500">' + (a && a.label) + '</span>';
   }).join("");
   document.getElementById("sheet-header").innerHTML =
-    '<div style="display:flex;align-items:center;gap:10px;padding:0 16px 10px;border-bottom:0.5px solid #f0f0f0;margin-bottom:4px">' +
+    '<div style="display:flex;align-items:center;gap:10px;padding:0 16px 10px;border-bottom:0.5px solid ' + (window.matchMedia('(prefers-color-scheme: dark)').matches ? '#333' : '#f0f0f0') + ';margin-bottom:4px">' +
     '<div style="display:flex;gap:4px">' + iconsHtml + '</div>' +
     '<span style="flex:1;font-size:14px;display:flex;align-items:center">' + labelsHtml + '</span>' +
     '<span style="font-size:12px;color:#555">' + fmtTime(e.created_at) + '</span></div>';
