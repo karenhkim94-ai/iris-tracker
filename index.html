@@ -206,18 +206,7 @@ function logAction(actionId) {
 }
 
 function notifyAction(actionId) {
-  fetch("https://cvhntedxgzpwxlhehuck.supabase.co/functions/v1/super-endpoint", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": "Bearer " + SUPABASE_KEY
-    },
-    body: JSON.stringify({ type: "event_logged", action: actionId })
-  }).then(function(r) {
-    showToast("Push: " + r.status);
-  }).catch(function(e) {
-    showToast("Push error: " + e.message);
-  });
+  // notifications handled by database webhook
 }
 
 function deleteActive() {
