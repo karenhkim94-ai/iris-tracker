@@ -58,6 +58,13 @@
     .event-row { background: #1e1e1c; border-color: #2e2e2c; }
     .event-time { color: #888; }
     .dot { background: #555; }
+    .dark-plus { color: #333; font-size: 9px; margin: 0 6px; }
+    @media (prefers-color-scheme: dark) {
+      .dark-plus { color: #666; }
+    }
+    .event-label-fed { color: #f0b84a !important; }
+    .event-label-peed { color: #5da8e8 !important; }
+    .event-label-pooped { color: #7dc44a !important; }
     .sheet { background: #1e1e1c; }
     .sheet-btn-edit { color: #f0ede6; border-bottom-color: #2e2e2c; }
     .sheet-btn-red { color: #e05555; border-bottom-color: #2e2e2c; }
@@ -360,7 +367,7 @@ function render() {
     if (!blockEvts.length) return;
     var rows = buildRows(blockEvts);
     if (!rows.length) return;
-    html += '<div style="display:flex;align-items:center;gap:8px;padding:12px 0 6px"><span style="font-size:14px;font-weight:600;color:#444;white-space:nowrap">' + block.label + '</span><div style="flex:1;height:0.5px;background:#e0e0e0"></div></div>';
+    html += '<div style="display:flex;align-items:center;gap:8px;padding:12px 0 6px"><span class="block-label" style="font-size:14px;font-weight:600;color:#444;white-space:nowrap">' + block.label + '</span><div class="block-line" style="flex:1;height:0.5px;background:#e0e0e0"></div></div>';
     rows.forEach(function(row) {
       var ids = row.map(function(e) { return e.id; });
       var idsStr = ids.map(function(id) { return "'" + id + "'"; }).join(",");
@@ -372,12 +379,12 @@ function render() {
           if (idx === 0) sub = " · Breakfast";
           else if (idx === 1) sub = " · Dinner";
         }
-        html += '<div class="event-row"><span class="event-icon" style="background:' + a.bg + '">' + a.emoji + '</span><span class="event-label" style="color:' + a.color + '">' + a.label + sub + '</span><span class="event-time">' + fmtTime(e.created_at) + '</span><button class="ellipsis-btn" onclick="openSheet([' + idsStr + '])"><span class="dot"></span><span class="dot"></span><span class="dot"></span></button></div>';
+        html += '<div class="event-row"><span class="event-icon" style="background:' + a.bg + '">' + a.emoji + '</span><span class="event-label event-label-' + e.action + '" style="color:' + a.color + '">' + a.label + sub + '</span><span class="event-time">' + fmtTime(e.created_at) + '</span><button class="ellipsis-btn" onclick="openSheet([' + idsStr + '])"><span class="dot"></span><span class="dot"></span><span class="dot"></span></button></div>';
       } else {
         html += '<div class="event-row"><div style="display:flex;gap:4px;flex-shrink:0">' +
           row.map(function(e) { return '<span class="event-icon" style="background:' + actionMap[e.action].bg + '">' + actionMap[e.action].emoji + '</span>'; }).join("") +
           '</div><span class="event-label" style="display:flex;align-items:center">' +
-          row.map(function(e, i) { return (i > 0 ? '<span style="color:#333;font-size:9px;margin:0 6px">+</span>' : '') + '<span style="color:' + actionMap[e.action].color + '">' + actionMap[e.action].label + '</span>'; }).join("") +
+          row.map(function(e, i) { return (i > 0 ? '<span class="dark-plus">+</span>' : '') + '<span class="event-label-' + e.action + '" style="color:' + actionMap[e.action].color + '">' + actionMap[e.action].label + '</span>'; }).join("") +
           '</span><span class="event-time">' + fmtTime(row[0].created_at) + '</span><button class="ellipsis-btn" onclick="openSheet([' + idsStr + '])"><span class="dot"></span><span class="dot"></span><span class="dot"></span></button></div>';
       }
     });
