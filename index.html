@@ -213,7 +213,11 @@ function notifyAction(actionId) {
       "Authorization": "Bearer " + SUPABASE_KEY
     },
     body: JSON.stringify({ type: "event_logged", action: actionId })
-  }).catch(function() {});
+  }).then(function(r) {
+    showToast("Push: " + r.status);
+  }).catch(function(e) {
+    showToast("Push error: " + e.message);
+  });
 }
 
 function deleteActive() {
