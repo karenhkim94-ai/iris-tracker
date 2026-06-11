@@ -206,12 +206,13 @@ function logAction(actionId) {
 }
 
 function notifyAction(actionId) {
-  var a = actionMap[actionId];
-  if (!a || Notification.permission !== "granted") return;
-  var title = a.emoji + " " + a.label + " logged";
-  var body = actionId === "fed" ? "I just ate!" : "I just " + a.label.toLowerCase() + "ed!";
-  navigator.serviceWorker.ready.then(function(reg) {
-    reg.active.postMessage({ type: "NOTIFY", title: title, body: body });
+  fetch("https://cvhntedxgzpwxlhehuck.supabase.co/functions/v1/super-endpoint", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + SUPABASE_KEY
+    },
+    body: JSON.stringify({ type: "event_logged", action: actionId })
   }).catch(function() {});
 }
 
