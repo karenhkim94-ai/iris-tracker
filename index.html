@@ -50,6 +50,10 @@
   #notif-banner span { font-size: 13px; color: #555; flex: 1; }
   #notif-banner button { background: #1a1a1a; color: #fff; border: none; border-radius: 8px; padding: 7px 12px; font-size: 13px; font-weight: 500; cursor: pointer; white-space: nowrap; touch-action: manipulation; }
 
+  .dark-plus { color: #333; font-size: 9px; margin: 0 6px; }
+  .block-label { font-size: 14px; font-weight: 600; color: #444; white-space: nowrap; }
+  .block-line { flex: 1; height: 0.5px; background: #e0e0e0; }
+
   @media (prefers-color-scheme: dark) {
     body { background: #111110; color: #f0ede6; }
     .nav { background: #1e1e1c; }
@@ -58,10 +62,9 @@
     .event-row { background: #1e1e1c; border-color: #2e2e2c; }
     .event-time { color: #888; }
     .dot { background: #555; }
-    .dark-plus { color: #333; font-size: 9px; margin: 0 6px; }
-    @media (prefers-color-scheme: dark) {
-      .dark-plus { color: #666; }
-    }
+    .dark-plus { color: #666; }
+    .block-label { color: #f0ede6; }
+    .block-line { background: #333; }
     .event-label-fed { color: #f0b84a !important; }
     .event-label-peed { color: #5da8e8 !important; }
     .event-label-pooped { color: #7dc44a !important; }
@@ -367,7 +370,7 @@ function render() {
     if (!blockEvts.length) return;
     var rows = buildRows(blockEvts);
     if (!rows.length) return;
-    html += '<div style="display:flex;align-items:center;gap:8px;padding:12px 0 6px"><span class="block-label" style="font-size:14px;font-weight:600;color:#444;white-space:nowrap">' + block.label + '</span><div class="block-line" style="flex:1;height:0.5px;background:#e0e0e0"></div></div>';
+    html += '<div style="display:flex;align-items:center;gap:8px;padding:12px 0 6px"><span class="block-label" style="font-size:14px;font-weight:600;white-space:nowrap">' + block.label + '</span><div class="block-line" style="flex:1;height:0.5px;"></div></div>';
     rows.forEach(function(row) {
       var ids = row.map(function(e) { return e.id; });
       var idsStr = ids.map(function(id) { return "'" + id + "'"; }).join(",");
