@@ -1,15 +1,470 @@
-{
-  "name": "Iris's Daily Tracker",
-  "short_name": "Iris",
-  "start_url": "/iris-tracker/",
-  "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#ffffff",
-  "icons": [
-    {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23F4A7B9'/><text y='.9em' font-size='70' x='15'>🐾</text></svg>",
-      "sizes": "192x192",
-      "type": "image/svg+xml"
-    }
-  ]
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="Iris" />
+<meta name="theme-color" content="#ffffff" />
+<link rel="apple-touch-icon" href="/iris-tracker/icon.png" />
+<link rel="manifest" href="/iris-tracker/manifest.json" />
+<title>Iris</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f9f9f7; color: #1a1a1a; overflow: hidden; height: 100vh; }
+  .wrap { max-width: 500px; margin: 0 auto; padding: 2rem 1rem 1.5rem; height: 100vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .error { background: #FCEBEB; border: 1px solid #F09595; border-radius: 10px; padding: 0.6rem 1rem; margin-bottom: 1rem; font-size: 13px; color: #A32D2D; }
+  .nav { display: flex; align-items: center; justify-content: space-between; background: #f1efe8; border-radius: 12px; padding: 0.6rem 1rem; margin-bottom: 1.25rem; touch-action: pan-y; user-select: none; }
+  .nav button { background: none; border: none; cursor: pointer; font-size: 20px; padding: 0 4px; color: #1a1a1a; }
+  .nav button:disabled { color: #bbb; cursor: default; }
+  .nav-label { text-align: center; }
+  .nav-label .day { font-size: 15px; font-weight: 500; }
+  .nav-label .count { font-size: 12px; color: #666; }
+  .actions { display: flex; gap: 8px; margin-bottom: 1.25rem; }
+  .action-btn { flex: 1; padding: 0; border: none; background: transparent; cursor: pointer; outline: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+  .empty { text-align: center; padding: 2.5rem 0; color: #888; font-size: 14px; }
+  .event-row { display: flex; align-items: center; gap: 10px; background: #fff; border: 0.5px solid #e0e0e0; border-radius: 10px; padding: 0.55rem 0.9rem; margin-bottom: 4px; }
+  .event-icon { font-size: 16px; border-radius: 7px; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .event-label { flex: 1; font-size: 14px; font-weight: 500; }
+  .event-time { font-size: 12px; color: #555; }
+  .ellipsis-btn { background: none; border: none; cursor: pointer; padding: 6px 8px; display: flex; flex-direction: column; gap: 3px; align-items: center; justify-content: center; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+  .dot { width: 3px; height: 3px; border-radius: 50%; background: #bbb; display: block; }
+  .sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 50; display: none; }
+  .sheet { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-radius: 20px 20px 0 0; z-index: 51; padding: 1rem 0 0; transform: translateY(100%); transition: transform 0.25s ease; max-width: 500px; margin: 0 auto; }
+  .sheet.open { transform: translateY(0); }
+  .sheet-btn { display: block; width: 100%; padding: 16px 20px; text-align: center; background: none; border: none; cursor: pointer; font-size: 16px; font-weight: 400; touch-action: manipulation; }
+  .sheet-btn-edit { color: #1a1a1a; border-bottom: 0.5px solid #f0f0f0; }
+  .sheet-btn-red { color: #C0392B; border-bottom: 0.5px solid #f0f0f0; }
+  .sheet-btn-cancel { color: #666; }
+  .edit-sheet { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-radius: 20px 20px 0 0; z-index: 51; padding: 1rem 1rem 2rem; transform: translateY(100%); transition: transform 0.25s ease; max-width: 500px; margin: 0 auto; }
+  .edit-sheet.open { transform: translateY(0); }
+  .edit-inputs { display: flex; gap: 8px; align-items: center; margin: 1rem 0; }
+  .edit-input { flex: 1; padding: 12px; border: 0.5px solid #ddd; border-radius: 10px; font-size: 18px; text-align: center; }
+  .edit-sep { font-size: 20px; color: #888; }
+  .edit-select { padding: 12px; border: 0.5px solid #ddd; border-radius: 10px; font-size: 16px; }
+  .edit-btns { display: flex; gap: 8px; }
+  .edit-btn-cancel { flex: 1; padding: 14px; background: #f1efe8; border: none; border-radius: 12px; cursor: pointer; font-size: 15px; }
+  .edit-btn-save { flex: 1; padding: 14px; background: #1a1a1a; color: #fff; border: none; border-radius: 12px; cursor: pointer; font-size: 15px; font-weight: 500; }
+  .toast { position: fixed; bottom: 4rem; left: 50%; transform: translateX(-50%); background: #1a1a1a; color: #fff; border-radius: 8px; padding: 7px 14px; font-size: 12px; z-index: 200; white-space: nowrap; pointer-events: none; display: none; }
+  #notif-banner { background: #f1efe8; border: 1px solid #ddd; border-radius: 10px; padding: 0.65rem 1rem; margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  #notif-banner span { font-size: 13px; color: #555; flex: 1; }
+  #notif-banner button { background: #1a1a1a; color: #fff; border: none; border-radius: 8px; padding: 7px 12px; font-size: 13px; font-weight: 500; cursor: pointer; white-space: nowrap; touch-action: manipulation; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="error" class="error" style="display:none"></div>
+  <div id="notif-banner" style="display:none">
+    <span>🔔 Enable notifications for Iris reminders</span>
+    <button onclick="enableNotifications()">Enable</button>
+  </div>
+  <div class="nav">
+    <button id="btn-back" onclick="goBack()">‹</button>
+    <div class="nav-label">
+      <div class="day" id="day-label">Today</div>
+      <div class="count" id="day-count">Loading…</div>
+    </div>
+    <button id="btn-fwd" onclick="goForward()" disabled>›</button>
+  </div>
+  <div class="actions" id="actions"></div>
+  <div id="timeline"></div>
+</div>
+
+<div class="sheet-overlay" id="overlay" onclick="closeAll()"></div>
+
+<div class="sheet" id="action-sheet">
+  <div id="sheet-header"></div>
+  <button class="sheet-btn sheet-btn-edit" onclick="openEditSheet()">Edit time</button>
+  <button class="sheet-btn sheet-btn-red" onclick="deleteActive()">Delete</button>
+  <button class="sheet-btn sheet-btn-cancel" onclick="closeAll()">Cancel</button>
+</div>
+
+<div class="edit-sheet" id="edit-sheet">
+  <div style="font-size:16px;font-weight:500;padding:0 0 8px">Edit time</div>
+  <div class="edit-inputs">
+    <input class="edit-input" type="number" min="1" max="12" id="edit-hour" />
+    <span class="edit-sep">:</span>
+    <input class="edit-input" type="number" min="0" max="59" id="edit-minute" />
+    <select class="edit-select" id="edit-ampm">
+      <option>AM</option>
+      <option>PM</option>
+    </select>
+  </div>
+  <div class="edit-btns">
+    <button class="edit-btn-cancel" onclick="closeAll()">Cancel</button>
+    <button class="edit-btn-save" onclick="saveEdit()">Save</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var SUPABASE_URL = "https://cvhntedxgzpwxlhehuck.supabase.co";
+var SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2aG50ZWR4Z3pwd3hsaGVodWNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwMjA5NDksImV4cCI6MjA5NTU5Njk0OX0.MLA6nZpN_WbLqslX5z9SYiq31tLeRYzWJoeVBxKp2rY";
+
+var ACTIONS = [
+  { id:"fed",    label:"Fed",    emoji:"🍖", color:"#BA7517", bg:"#FAEEDA", border:"#EF9F27" },
+  { id:"peed",   label:"Peed",   emoji:"💧", color:"#185FA5", bg:"#E6F1FB", border:"#378ADD" },
+  { id:"pooped", label:"Pooped", emoji:"💩", color:"#3B6D11", bg:"#EAF3DE", border:"#639922" }
+];
+var actionMap = {};
+ACTIONS.forEach(function(a) { actionMap[a.id] = a; });
+
+var TIME_BLOCKS = [
+  { label:"Evening",   start:17, end:24 },
+  { label:"Afternoon", start:12, end:17 },
+  { label:"Morning",   start:6,  end:12 },
+  { label:"Night",     start:0,  end:6  }
+];
+
+var events = [], daysAgo = 0, activeIds = [];
+
+function dateKey(n) {
+  var d = new Date(); d.setDate(d.getDate() - n);
+  return d.toLocaleDateString("en-CA");
 }
+function localDateStr(ts) { return new Date(ts).toLocaleDateString("en-CA"); }
+function fmtDayLabel(n) {
+  if (n === 0) return "Today";
+  if (n === 1) return "Yesterday";
+  var d = new Date(); d.setDate(d.getDate() - n);
+  return d.toLocaleDateString("en-US", { weekday:"long", month:"short", day:"numeric" });
+}
+function fmtTime(ts) {
+  return new Date(ts).toLocaleTimeString("en-US", { hour:"numeric", minute:"2-digit", hour12:true });
+}
+
+function buildRows(evts) {
+  var sorted = evts.slice().sort(function(a,b) { return new Date(a.created_at) - new Date(b.created_at); });
+  var used = {};
+  var rows = [];
+  for (var i = 0; i < sorted.length; i++) {
+    var e = sorted[i];
+    if (used[e.id]) continue;
+    var next = null;
+    for (var j = i+1; j < sorted.length; j++) { if (!used[sorted[j].id]) { next = sorted[j]; break; } }
+    var eG = e.action === "peed" || e.action === "pooped";
+    var nG = next && (next.action === "peed" || next.action === "pooped");
+    if (eG && nG && (new Date(next.created_at) - new Date(e.created_at)) <= 5 * 60000) {
+      var pair = [e, next].sort(function(a,b) { return a.action === "peed" ? -1 : 1; });
+      rows.push(pair);
+      used[e.id] = true; used[next.id] = true;
+    } else {
+      rows.push([e]); used[e.id] = true;
+    }
+  }
+  return rows.reverse();
+}
+
+function lastSince(actionId, allToday) {
+  if (daysAgo !== 0) return null;
+  var matches = allToday.filter(function(e) { return e.action === actionId; });
+  if (!matches.length) return null;
+  var last = matches[matches.length - 1];
+  var ms = Date.now() - new Date(last.created_at).getTime();
+  var h = Math.floor(ms / 3600000);
+  var m = Math.floor((ms % 3600000) / 60000);
+  var label = h === 0 ? m + "m ago" : m === 0 ? h + "h ago" : h + "h " + m + "m ago";
+  var hour = new Date().getHours();
+  var firstPeePoop = allToday.find(function(e) { return e.action === "peed" || e.action === "pooped"; });
+  var alert = (actionId === "peed" || actionId === "pooped") && !!firstPeePoop && ms > 4 * 3600000 && hour < 23;
+  return { label: label, alert: alert };
+}
+
+function fedAlert(allToday) {
+  if (daysAgo !== 0) return false;
+  var hour = new Date().getHours();
+  return hour >= 16 && allToday.filter(function(e) { return e.action === "fed"; }).length < 2;
+}
+
+function fetchEvents() {
+  var from = new Date(); from.setDate(from.getDate() - 6); from.setHours(0,0,0,0);
+  return fetch(SUPABASE_URL + "/rest/v1/events?select=*&created_at=gte." + from.toISOString() + "&order=created_at.asc", {
+    headers: { apikey: SUPABASE_KEY, Authorization: "Bearer " + SUPABASE_KEY, Accept: "application/json" }
+  }).then(function(res) {
+    if (!res.ok) return res.text().then(function(t) { throw new Error(t); });
+    return res.json();
+  }).then(function(data) {
+    events = data;
+    document.getElementById("error").style.display = "none";
+    render();
+  }).catch(function(e) {
+    document.getElementById("error").textContent = "Couldn't load events. Check your connection.";
+    document.getElementById("error").style.display = "block";
+    render();
+  });
+}
+
+function logAction(actionId) {
+  fetch(SUPABASE_URL + "/rest/v1/events", {
+    method: "POST",
+    headers: { apikey: SUPABASE_KEY, Authorization: "Bearer " + SUPABASE_KEY, "Content-Type": "application/json", Prefer: "return=representation" },
+    body: JSON.stringify({ action: actionId })
+  }).then(function(r) { return r.json(); }).then(function(data) {
+    if (data[0]) { events.push(data[0]); render(); notifyAction(actionId); }
+  });
+}
+
+function notifyAction(actionId) {
+  fetch("https://cvhntedxgzpwxlhehuck.supabase.co/functions/v1/super-endpoint", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + SUPABASE_KEY
+    },
+    body: JSON.stringify({ type: "event_logged", action: actionId })
+  }).catch(function() {});
+}
+
+function deleteActive() {
+  var ids = activeIds.slice();
+  closeAll();
+  events = events.filter(function(e) { return ids.indexOf(e.id) === -1; });
+  render();
+  Promise.all(ids.map(function(id) {
+    return fetch(SUPABASE_URL + "/rest/v1/events?id=eq." + id, {
+      method: "DELETE", headers: { apikey: SUPABASE_KEY, Authorization: "Bearer " + SUPABASE_KEY }
+    });
+  })).then(function() { showToast("Event deleted"); fetchEvents(); });
+}
+
+function updateEventTime(id, newTs) {
+  return fetch(SUPABASE_URL + "/rest/v1/events?id=eq." + id, {
+    method: "PATCH",
+    headers: { apikey: SUPABASE_KEY, Authorization: "Bearer " + SUPABASE_KEY, "Content-Type": "application/json" },
+    body: JSON.stringify({ created_at: new Date(newTs).toISOString() })
+  });
+}
+
+function showToast(msg) {
+  var el = document.getElementById("toast");
+  el.textContent = msg;
+  el.style.display = "block";
+  setTimeout(function() { el.style.display = "none"; }, 1500);
+}
+
+function openSheet(ids) {
+  activeIds = ids;
+  var e = null;
+  for (var i = 0; i < events.length; i++) { if (events[i].id === ids[0]) { e = events[i]; break; } }
+  var iconsHtml = ids.map(function(id) {
+    var ev = null; for (var i = 0; i < events.length; i++) { if (events[i].id === id) { ev = events[i]; break; } }
+    var a = ev && actionMap[ev.action];
+    return '<span class="event-icon" style="background:' + (a && a.bg) + '">' + (a && a.emoji) + '</span>';
+  }).join("");
+  var labelsHtml = ids.map(function(id, i) {
+    var ev = null; for (var j = 0; j < events.length; j++) { if (events[j].id === id) { ev = events[j]; break; } }
+    var a = ev && actionMap[ev.action];
+    return (i > 0 ? '<span style="color:#333;font-size:9px;margin:0 6px">+</span>' : '') + '<span style="color:' + (a && a.color) + ';font-weight:500">' + (a && a.label) + '</span>';
+  }).join("");
+  document.getElementById("sheet-header").innerHTML =
+    '<div style="display:flex;align-items:center;gap:10px;padding:0 16px 10px;border-bottom:0.5px solid #f0f0f0;margin-bottom:4px">' +
+    '<div style="display:flex;gap:4px">' + iconsHtml + '</div>' +
+    '<span style="flex:1;font-size:14px;display:flex;align-items:center">' + labelsHtml + '</span>' +
+    '<span style="font-size:12px;color:#555">' + fmtTime(e.created_at) + '</span></div>';
+  document.getElementById("overlay").style.display = "block";
+  document.getElementById("action-sheet").classList.add("open");
+}
+
+function closeAll() {
+  document.getElementById("overlay").style.display = "none";
+  document.getElementById("action-sheet").classList.remove("open");
+  document.getElementById("edit-sheet").classList.remove("open");
+}
+
+function openEditSheet() {
+  var e = null; for (var i = 0; i < events.length; i++) { if (events[i].id === activeIds[0]) { e = events[i]; break; } }
+  var d = new Date(e.created_at);
+  var h = d.getHours();
+  document.getElementById("edit-hour").value = h === 0 ? 12 : h > 12 ? h - 12 : h;
+  document.getElementById("edit-minute").value = String(d.getMinutes()).padStart(2, "0");
+  document.getElementById("edit-ampm").value = h >= 12 ? "PM" : "AM";
+  document.getElementById("action-sheet").classList.remove("open");
+  document.getElementById("edit-sheet").classList.add("open");
+}
+
+function saveEdit() {
+  var h = parseInt(document.getElementById("edit-hour").value);
+  var m = parseInt(document.getElementById("edit-minute").value);
+  var ampm = document.getElementById("edit-ampm").value;
+  var hour = h;
+  if (ampm === "PM" && h !== 12) hour += 12;
+  if (ampm === "AM" && h === 12) hour = 0;
+  var base = null; for (var i = 0; i < events.length; i++) { if (events[i].id === activeIds[0]) { base = new Date(events[i].created_at); break; } }
+  base.setHours(hour, m, 0, 0);
+  var newTs = base.getTime();
+  var ids = activeIds.slice();
+  events = events.map(function(e) {
+    if (ids.indexOf(e.id) !== -1) { var ne = {}; for (var k in e) ne[k] = e[k]; ne.created_at = new Date(newTs).toISOString(); return ne; }
+    return e;
+  });
+  closeAll();
+  render();
+  Promise.all(ids.map(function(id) { return updateEventTime(id, newTs); })).then(function() { showToast("Time updated"); fetchEvents(); });
+}
+
+function goBack()    { if (daysAgo < 6) { daysAgo++; render(); } }
+function goForward() { if (daysAgo > 0) { daysAgo--; render(); } }
+
+function render() {
+  var cur = dateKey(daysAgo);
+  var allToday = events.filter(function(e) { return localDateStr(e.created_at) === cur; }).sort(function(a,b) { return new Date(a.created_at) - new Date(b.created_at); });
+  var counts = {};
+  ACTIONS.forEach(function(a) { counts[a.id] = allToday.filter(function(e) { return e.action === a.id; }).length; });
+  var fedEvents = allToday.filter(function(e) { return e.action === "fed"; });
+
+  document.getElementById("day-label").textContent = fmtDayLabel(daysAgo);
+  document.getElementById("day-count").textContent = allToday.length + " events";
+  document.getElementById("btn-back").disabled = daysAgo >= 6;
+  document.getElementById("btn-fwd").disabled = daysAgo <= 0;
+
+  document.getElementById("actions").innerHTML = ACTIONS.map(function(a) {
+    var since = lastSince(a.id, allToday);
+    var alert = (since && since.alert) || (a.id === "fed" && fedAlert(allToday));
+    var bg = alert ? "#FCEBEB" : a.bg;
+    var border = alert ? "2px solid #E24B4A" : "1.5px solid " + a.border;
+    var color = alert ? "#A32D2D" : a.color;
+    var subText = since ? ((alert ? "⚠️ " : "") + since.label) : (a.id === "fed" && fedAlert(allToday) ? "⚠️ dinner?" : "");
+    return '<button class="action-btn" onclick="logAction(\'' + a.id + '\')">' +
+      '<div style="background:' + bg + ';border:' + border + ';border-radius:12px;width:110px;height:110px;display:flex;flex-direction:column;align-items:center;justify-content:space-evenly;margin:0 auto;padding:10px 0">' +
+      '<span style="font-size:26px">' + a.emoji + '</span>' +
+      '<span style="font-size:12px;font-weight:500;color:' + color + '">' + counts[a.id] + '</span>' +
+      (subText ? '<span style="font-size:10px;color:' + color + '">' + subText + '</span>' : '') +
+      '</div></button>';
+  }).join("");
+
+  var tl = document.getElementById("timeline");
+  if (!allToday.length) { tl.innerHTML = '<div class="empty">No events this day</div>'; return; }
+
+  var html = "";
+  TIME_BLOCKS.forEach(function(block) {
+    var blockEvts = allToday.filter(function(e) { var h = new Date(e.created_at).getHours(); return h >= block.start && h < block.end; });
+    if (!blockEvts.length) return;
+    var rows = buildRows(blockEvts);
+    if (!rows.length) return;
+    html += '<div style="display:flex;align-items:center;gap:8px;padding:12px 0 6px"><span style="font-size:14px;font-weight:600;color:#444;white-space:nowrap">' + block.label + '</span><div style="flex:1;height:0.5px;background:#e0e0e0"></div></div>';
+    rows.forEach(function(row) {
+      var ids = row.map(function(e) { return e.id; });
+      var idsStr = ids.map(function(id) { return "'" + id + "'"; }).join(",");
+      if (row.length === 1) {
+        var e = row[0]; var a = actionMap[e.action]; if (!a) return;
+        var sub = "";
+        if (e.action === "fed") {
+          var idx = -1; for (var i = 0; i < fedEvents.length; i++) { if (fedEvents[i].id === e.id) { idx = i; break; } }
+          if (idx === 0) sub = " · Breakfast";
+          else if (idx === 1) sub = " · Dinner";
+        }
+        html += '<div class="event-row"><span class="event-icon" style="background:' + a.bg + '">' + a.emoji + '</span><span class="event-label" style="color:' + a.color + '">' + a.label + sub + '</span><span class="event-time">' + fmtTime(e.created_at) + '</span><button class="ellipsis-btn" onclick="openSheet([' + idsStr + '])"><span class="dot"></span><span class="dot"></span><span class="dot"></span></button></div>';
+      } else {
+        html += '<div class="event-row"><div style="display:flex;gap:4px;flex-shrink:0">' +
+          row.map(function(e) { return '<span class="event-icon" style="background:' + actionMap[e.action].bg + '">' + actionMap[e.action].emoji + '</span>'; }).join("") +
+          '</div><span class="event-label" style="display:flex;align-items:center">' +
+          row.map(function(e, i) { return (i > 0 ? '<span style="color:#333;font-size:9px;margin:0 6px">+</span>' : '') + '<span style="color:' + actionMap[e.action].color + '">' + actionMap[e.action].label + '</span>'; }).join("") +
+          '</span><span class="event-time">' + fmtTime(row[0].created_at) + '</span><button class="ellipsis-btn" onclick="openSheet([' + idsStr + '])"><span class="dot"></span><span class="dot"></span><span class="dot"></span></button></div>';
+      }
+    });
+  });
+  tl.innerHTML = html || '<div class="empty">No events this day</div>';
+}
+
+var touchStartX = 0;
+var navEl = document.querySelector(".nav");
+navEl.addEventListener("touchstart", function(e) { touchStartX = e.touches[0].clientX; }, { passive: true });
+navEl.addEventListener("touchend", function(e) {
+  var diff = touchStartX - e.changedTouches[0].clientX;
+  if (Math.abs(diff) < 40) return;
+  if (diff < 0 && daysAgo < 6) { daysAgo++; render(); }
+  else if (diff > 0 && daysAgo > 0) { daysAgo--; render(); }
+});
+
+fetchEvents();
+
+function connectWS() {
+  var ws = new WebSocket("wss://cvhntedxgzpwxlhehuck.supabase.co/realtime/v1/websocket?apikey=" + SUPABASE_KEY + "&vsn=1.0.0");
+  ws.onopen = function() { ws.send(JSON.stringify({ topic:"realtime:public:events", event:"phx_join", payload:{}, ref:"1" })); };
+  ws.onmessage = function(msg) {
+    var data = JSON.parse(msg.data);
+    if (data.event === "INSERT") { events.push(data.payload.record); render(); }
+    else if (data.event === "DELETE") { events = events.filter(function(e) { return e.id !== data.payload.old_record.id; }); render(); }
+  };
+  ws.onclose = function() { setTimeout(connectWS, 3000); };
+  ws.onerror = function() { ws.close(); };
+}
+setInterval(fetchEvents, 5000);
+connectWS();
+
+function urlBase64ToUint8Array(base64String) {
+  var padding = "=".repeat((4 - base64String.length % 4) % 4);
+  var base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  var raw = atob(base64);
+  var arr = new Uint8Array(raw.length);
+  for (var i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
+  return arr;
+}
+
+function checkNotifBanner() {
+  var banner = document.getElementById("notif-banner");
+  if (!("Notification" in window)) { banner.style.display = "none"; return; }
+  if (Notification.permission === "granted") {
+    banner.style.display = "none";
+    if ("serviceWorker" in navigator && "PushManager" in window) initPushSilent();
+  } else if (Notification.permission === "denied") {
+    banner.style.display = "none";
+  } else {
+    banner.style.display = "flex";
+  }
+}
+
+function enableNotifications() {
+  showToast("Requesting...");
+  Notification.requestPermission().then(function(permission) {
+    if (permission !== "granted") {
+      showToast("Notifications blocked");
+      document.getElementById("notif-banner").style.display = "none";
+      return;
+    }
+    document.getElementById("notif-banner").style.display = "none";
+    showToast("Notifications enabled!");
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
+    navigator.serviceWorker.register("/iris-tracker/sw.js").then(function(reg) {
+      return reg.pushManager.getSubscription().then(function(existing) {
+        var subPromise = existing ? Promise.resolve(existing) : reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array("BGPkobvdvjVn_YvVfpl4I7W5mlTHq1CCKmyu763MayupsPNhPtXEH-i0E6WUUHX72sfG5xqZ9JV7KsODtWYhpbU")
+        });
+        return subPromise.then(function(sub) {
+          return fetch(SUPABASE_URL + "/rest/v1/subscriptions", {
+            method: "POST",
+            headers: { apikey: SUPABASE_KEY, Authorization: "Bearer " + SUPABASE_KEY, "Content-Type": "application/json", Prefer: "resolution=merge-duplicates" },
+            body: JSON.stringify({ endpoint: sub.endpoint, subscription: JSON.stringify(sub) })
+          });
+        });
+      });
+    }).catch(function(e) { console.warn("Push init failed:", e); });
+  });
+}
+
+function initPushSilent() {
+  navigator.serviceWorker.register("/iris-tracker/sw.js").then(function(reg) {
+    return reg.pushManager.getSubscription().then(function(existing) {
+      if (existing) return;
+      return reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array("BGPkobvdvjVn_YvVfpl4I7W5mlTHq1CCKmyu763MayupsPNhPtXEH-i0E6WUUHX72sfG5xqZ9JV7KsODtWYhpbU")
+      }).then(function(sub) {
+        return fetch(SUPABASE_URL + "/rest/v1/subscriptions", {
+          method: "POST",
+          headers: { apikey: SUPABASE_KEY, Authorization: "Bearer " + SUPABASE_KEY, "Content-Type": "application/json", Prefer: "resolution=merge-duplicates" },
+          body: JSON.stringify({ endpoint: sub.endpoint, subscription: JSON.stringify(sub) })
+        });
+      });
+    });
+  }).catch(function(e) { console.warn("Push silent init failed:", e); });
+}
+
+checkNotifBanner();
+
+
+</script>
+</body>
+</html>
