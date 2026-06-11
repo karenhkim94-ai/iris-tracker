@@ -280,10 +280,13 @@ function openSheet(ids) {
     var a = ev && actionMap[ev.action];
     return '<span class="event-icon" style="background:' + (a && a.bg) + '">' + (a && a.emoji) + '</span>';
   }).join("");
+  var isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  var darkColors = { fed: "#f0b84a", peed: "#5da8e8", pooped: "#7dc44a" };
   var labelsHtml = ids.map(function(id, i) {
     var ev = null; for (var j = 0; j < events.length; j++) { if (events[j].id === id) { ev = events[j]; break; } }
     var a = ev && actionMap[ev.action];
-    return (i > 0 ? '<span style="color:#333;font-size:9px;margin:0 6px">+</span>' : '') + '<span style="color:' + (a && a.color) + ';font-weight:500">' + (a && a.label) + '</span>';
+    var color = isDark ? (darkColors[ev.action] || a.color) : a.color;
+    return (i > 0 ? '<span class="dark-plus">+</span>' : '') + '<span style="color:' + color + ';font-weight:500">' + (a && a.label) + '</span>';
   }).join("");
   document.getElementById("sheet-header").innerHTML =
     '<div style="display:flex;align-items:center;gap:10px;padding:0 16px 10px;border-bottom:0.5px solid ' + (window.matchMedia('(prefers-color-scheme: dark)').matches ? '#333' : '#f0f0f0') + ';margin-bottom:4px">' +
