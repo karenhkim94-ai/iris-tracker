@@ -207,13 +207,18 @@ function logAction(actionId) {
 
 function notifyAction(actionId) {
   var a = actionMap[actionId];
-  if (!a || !("serviceWorker" in navigator)) return;
-  navigator.serviceWorker.ready.then(function(reg) {
-    reg.showNotification(a.emoji + " " + a.label + " logged", {
-      body: actionId === "fed" ? "I just ate!" : "I just " + a.label.toLowerCase() + "ed!",
-      icon: "/iris-tracker/icon.png"
+  if (!a || Notification.permission !== "granted") return;
+  var title = a.emoji + " " + a.label + " logged";
+  var body = actionId === "fed" ? "I just ate!" : "I just " + a.label.toLowerCase() + "ed!";
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.ready.then(function(reg) {
+      reg.showNotification(title, { body: body, icon: "/iris-tracker/icon.png" });
+    }).catch(function() {
+      new Notification(title, { body: body, icon: "/iris-tracker/icon.png" });
     });
-  }).catch(function() {});
+  } else {
+    new Notification(title, { body: body, icon: "/iris-tracker/icon.png" });
+  }
 }
 
 function deleteActive() {
@@ -464,11 +469,7 @@ function initPushSilent() {
 
 checkNotifBanner();
 
-// debug - remove later
-var dbg = document.createElement("div");
-dbg.style = "background:#eee;padding:8px;font-size:11px;border-radius:8px;margin-bottom:8px;word-break:break-all;";
-dbg.textContent = "SW: " + ("serviceWorker" in navigator) + " | Push: " + ("PushManager" in window) + " | Notif: " + (("Notification" in window) ? Notification.permission : "none");
-document.querySelector(".wrap").insertBefore(dbg, document.querySelector(".wrap").firstChild);
+
 </script>
 </body>
 </html>
