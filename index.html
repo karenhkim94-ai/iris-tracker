@@ -49,6 +49,31 @@
   #notif-banner { background: #f1efe8; border: 1px solid #ddd; border-radius: 10px; padding: 0.65rem 1rem; margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
   #notif-banner span { font-size: 13px; color: #555; flex: 1; }
   #notif-banner button { background: #1a1a1a; color: #fff; border: none; border-radius: 8px; padding: 7px 12px; font-size: 13px; font-weight: 500; cursor: pointer; white-space: nowrap; touch-action: manipulation; }
+
+  @media (prefers-color-scheme: dark) {
+    body { background: #111110; color: #f0ede6; }
+    .nav { background: #1e1e1c; }
+    .nav button { color: #f0ede6; }
+    .nav-label .count { color: #888; }
+    .event-row { background: #1e1e1c; border-color: #2e2e2c; }
+    .event-time { color: #888; }
+    .dot { background: #555; }
+    .sheet { background: #1e1e1c; }
+    .sheet-btn-edit { color: #f0ede6; border-bottom-color: #2e2e2c; }
+    .sheet-btn-red { color: #e05555; border-bottom-color: #2e2e2c; }
+    .sheet-btn-cancel { color: #888; }
+    .edit-sheet { background: #1e1e1c; }
+    .edit-input { background: #2a2a28; border-color: #3a3a38; color: #f0ede6; }
+    .edit-sep { color: #666; }
+    .edit-select { background: #2a2a28; border-color: #3a3a38; color: #f0ede6; }
+    .edit-btn-cancel { background: #2a2a28; color: #f0ede6; }
+    .edit-btn-save { background: #f0ede6; color: #111110; }
+    .empty { color: #555; }
+    #notif-banner { background: #1e1e1c; border-color: #2e2e2c; }
+    #notif-banner span { color: #888; }
+    #notif-banner button { background: #f0ede6; color: #111110; }
+    .toast { background: #f0ede6; color: #111110; }
+  }
 </style>
 </head>
 <body>
