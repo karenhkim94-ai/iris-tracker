@@ -462,6 +462,12 @@ function initPushSilent() {
 }
 
 checkNotifBanner();
+
+// debug - remove later
+var dbg = document.createElement("div");
+dbg.style = "background:#eee;padding:8px;font-size:11px;border-radius:8px;margin-bottom:8px;word-break:break-all;";
+dbg.textContent = "SW: " + ("serviceWorker" in navigator) + " | Push: " + ("PushManager" in window) + " | Notif: " + (("Notification" in window) ? Notification.permission : "none");
+document.querySelector(".wrap").insertBefore(dbg, document.querySelector(".wrap").firstChild);
 </script>
 </body>
 </html>
