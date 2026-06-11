@@ -416,16 +416,17 @@ function checkNotifBanner() {
 }
 
 function enableNotifications() {
-  if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
-  navigator.serviceWorker.register("/iris-tracker/sw.js").then(function(reg) {
-    return Notification.requestPermission().then(function(permission) {
-      if (permission !== "granted") {
-        showToast("Notifications blocked");
-        document.getElementById("notif-banner").style.display = "none";
-        return;
-      }
+  showToast("Requesting...");
+  Notification.requestPermission().then(function(permission) {
+    if (permission !== "granted") {
+      showToast("Notifications blocked");
       document.getElementById("notif-banner").style.display = "none";
-      showToast("Notifications enabled!");
+      return;
+    }
+    document.getElementById("notif-banner").style.display = "none";
+    showToast("Notifications enabled!");
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
+    navigator.serviceWorker.register("/iris-tracker/sw.js").then(function(reg) {
       return reg.pushManager.getSubscription().then(function(existing) {
         var subPromise = existing ? Promise.resolve(existing) : reg.pushManager.subscribe({
           userVisibleOnly: true,
@@ -439,8 +440,8 @@ function enableNotifications() {
           });
         });
       });
-    });
-  }).catch(function(e) { console.warn("Push init failed:", e); });
+    }).catch(function(e) { console.warn("Push init failed:", e); });
+  });
 }
 
 function initPushSilent() {
