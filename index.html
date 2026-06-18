@@ -202,7 +202,8 @@ function lastSince(actionId, allToday) {
   var label = h === 0 ? m + "m ago" : m === 0 ? h + "h ago" : h + "h " + m + "m ago";
   var hour = new Date().getHours();
   var firstPeePoop = allToday.find(function(e) { return e.action === "peed" || e.action === "pooped"; });
-  var alert = (actionId === "peed" || actionId === "pooped") && !!firstPeePoop && ms > 4 * 3600000 && hour < 23;
+  var threshold = actionId === "pooped" ? 8 : 4; 
+ var alert = (actionId === "peed" || actionId === "pooped") && !!firstPeePoop && ms > threshold * 3600000 && hour < 23;
   return { label: label, alert: alert };
 }
 
