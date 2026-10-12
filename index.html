@@ -264,6 +264,7 @@ var ACTIONS = [
 ];
 var actionMap = {};
 ACTIONS.forEach(function(a) { actionMap[a.id] = a; });
+actionMap["flea"] = { id:"flea", label:"Flea med", emoji:"💊", color:"#7c3aed", bg:"#f3e8ff", border:"#c084fc" };
 
 var TIME_BLOCKS = [
   { label:"Evening",   start:17, end:24 },
@@ -340,7 +341,6 @@ function updateFleaBanners() {
   var alertEl = document.getElementById("flea-alert-banner");
   var infoEl = document.getElementById("flea-banner");
   var alertText = document.getElementById("flea-alert-text");
-  var infoText = document.getElementById("flea-banner-text");
 
   infoEl.style.display = "none";
 
@@ -672,7 +672,7 @@ function render() {
       subText = '<span style="font-size:10px;color:' + color + '">⚠️ dinner?</span>';
     }
     return '<button class="action-btn" onclick="logAction(\'' + a.id + '\')">' +
-      '<div style="background:' + bg + ';border:' + border + ';border-radius:12px;width:110px;height:110px;display:flex;flex-direction:column;align-items:center;justify-content:space-evenly;margin:0 auto;padding:10px 0">' +
+      '<div style="background:' + bg + ';border:' + border + ';border-radius:12px;width:100%;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:space-evenly;padding:10px 0">' +
       '<span style="font-size:26px">' + a.emoji + '</span>' +
       '<span style="font-size:12px;font-weight:500;color:' + color + '">' + counts[a.id] + '</span>' +
       subText +
