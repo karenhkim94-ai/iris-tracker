@@ -514,10 +514,11 @@ function lastSince(actionId, allToday) {
 
 function fedAlert(allToday) {
   if (daysAgo !== 0) return false;
+  if (boardingCoversToday()) return false;
   var hour = new Date().getHours();
   return hour >= 16 && allToday.filter(function(e) { return e.action === "fed"; }).length < 2;
 }
-
+ 
 function fetchEvents() {
   var from = new Date(); from.setDate(from.getDate() - 6); from.setHours(0,0,0,0);
   return fetch(SUPABASE_URL + "/rest/v1/events?select=*&created_at=gte." + from.toISOString() + "&order=created_at.asc", {
