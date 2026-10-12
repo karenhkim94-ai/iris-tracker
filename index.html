@@ -50,7 +50,44 @@
   #notif-banner span { font-size: 13px; color: #555; flex: 1; }
   #notif-banner button { background: #1a1a1a; color: #fff; border: none; border-radius: 8px; padding: 7px 12px; font-size: 13px; font-weight: 500; cursor: pointer; white-space: nowrap; touch-action: manipulation; }
 
+  /* ── Boarding banner ── */
+  #boarding-banner { background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 10px; padding: 0.65rem 1rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 10px; }
+  #boarding-banner span { font-size: 13px; color: #1D4ED8; flex: 1; }
+  #boarding-banner button:not([style]) { background: #1D4ED8; color: #fff; border: none; border-radius: 8px; padding: 7px 12px; font-size: 13px; font-weight: 500; cursor: pointer; white-space: nowrap; touch-action: manipulation; }
+
+  /* ── Flea banner ── */
+  #flea-banner { background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 10px; padding: 0.65rem 1rem; margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  #flea-banner span { font-size: 13px; color: #166534; flex: 1; }
+  #flea-banner button { background: #166534; color: #fff; border: none; border-radius: 8px; padding: 7px 12px; font-size: 13px; font-weight: 500; cursor: pointer; white-space: nowrap; touch-action: manipulation; }
+
+  /* ── Flea alert (overdue) ── */
+  #flea-alert-banner { background: #FCEBEB; border: 1px solid #E24B4A; border-radius: 10px; padding: 0.65rem 1rem; margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  #flea-alert-banner span { font-size: 13px; color: #A32D2D; flex: 1; }
+  #flea-alert-banner button { background: #A32D2D; color: #fff; border: none; border-radius: 8px; padding: 7px 12px; font-size: 13px; font-weight: 500; cursor: pointer; white-space: nowrap; touch-action: manipulation; }
+
+  /* ── Flea sheet ── */
+  .flea-sheet { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-radius: 20px 20px 0 0; z-index: 51; padding: 1.25rem 1rem 2rem; transform: translateY(100%); transition: transform 0.25s ease; max-width: 500px; margin: 0 auto; }
+  .flea-sheet.open { transform: translateY(0); }
+  .flea-sheet-title { font-size: 16px; font-weight: 500; margin-bottom: 4px; }
+  .flea-sheet-sub { font-size: 13px; color: #666; margin-bottom: 1.25rem; }
+  .flea-log-btn { width: 100%; padding: 14px; background: #166534; color: #fff; border: none; border-radius: 12px; font-size: 15px; font-weight: 500; cursor: pointer; margin-bottom: 8px; touch-action: manipulation; }
+  .flea-cancel-btn { width: 100%; padding: 14px; background: #f1efe8; color: #1a1a1a; border: none; border-radius: 12px; font-size: 15px; cursor: pointer; touch-action: manipulation; }
+
+  /* ── Boarding sheet ── */
+  .boarding-sheet { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-radius: 20px 20px 0 0; z-index: 51; padding: 1.25rem 1rem 2rem; transform: translateY(100%); transition: transform 0.25s ease; max-width: 500px; margin: 0 auto; overflow-y: auto; max-height: 85vh; }
+  .boarding-sheet.open { transform: translateY(0); }
+  .boarding-sheet-title { font-size: 16px; font-weight: 500; margin-bottom: 4px; }
+  .boarding-sheet-sub { font-size: 13px; color: #666; margin-bottom: 1.25rem; }
+  .boarding-row { margin-bottom: 1rem; }
+  .boarding-row label { display: block; font-size: 12px; font-weight: 500; color: #666; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .boarding-input { width: 100%; padding: 12px; border: 0.5px solid #ddd; border-radius: 10px; font-size: 15px; font-family: inherit; background: #fff; color: #1a1a1a; }
+  .boarding-save-btn { width: 100%; padding: 14px; background: #1D4ED8; color: #fff; border: none; border-radius: 12px; font-size: 15px; font-weight: 500; cursor: pointer; margin-bottom: 8px; touch-action: manipulation; }
+  .boarding-end-btn { width: 100%; padding: 14px; background: #f1efe8; color: #1a1a1a; border: none; border-radius: 12px; font-size: 15px; cursor: pointer; margin-bottom: 8px; touch-action: manipulation; }
+  .boarding-cancel-btn { width: 100%; padding: 14px; background: transparent; color: #666; border: none; border-radius: 12px; font-size: 15px; cursor: pointer; touch-action: manipulation; }
+
   .dark-plus { color: #333; font-size: 9px; margin: 0 6px; }
+  .more-btn { background: none; border: none; cursor: pointer; padding: 4px 6px; display: flex; flex-direction: column; gap: 3px; align-items: center; justify-content: center; }
+  .more-dot { width: 3px; height: 3px; border-radius: 50%; background: #1a1a1a; display: block; }
   .block-label { font-size: 14px; font-weight: 600; color: #444; white-space: nowrap; }
   .block-line { flex: 1; height: 0.5px; background: #e0e0e0; }
 
@@ -62,12 +99,14 @@
     .event-row { background: #1e1e1c; border-color: #2e2e2c; }
     .event-time { color: #888; }
     .dot { background: #555; }
+    .more-dot { background: #f0ede6; }
     .dark-plus { color: #666; }
     .block-label { color: #f0ede6; }
     .block-line { background: #333; }
     .event-label-fed { color: #f0b84a !important; }
     .event-label-peed { color: #5da8e8 !important; }
     .event-label-pooped { color: #7dc44a !important; }
+    .event-label-flea { color: #c084fc !important; }
     .sheet { background: #1e1e1c; }
     .sheet-btn-edit { color: #f0ede6; border-bottom-color: #333; }
     .sheet-btn-red { color: #e05555; border-bottom-color: #333; }
@@ -83,6 +122,24 @@
     #notif-banner span { color: #888; }
     #notif-banner button { background: #f0ede6; color: #111110; }
     .toast { background: #f0ede6; color: #111110; }
+    #boarding-banner { background: #1e3a5f; border-color: #2563EB; }
+    #boarding-banner span { color: #93C5FD; }
+    #boarding-banner button { background: #2563EB; color: #fff; }
+    #flea-banner { background: #14532d; border-color: #166534; }
+    #flea-banner span { color: #86EFAC; }
+    #flea-banner button { background: #166534; color: #fff; }
+    #flea-alert-banner { background: #FCEBEB; border-color: #E24B4A; }
+    #flea-alert-banner span { color: #A32D2D; }
+    #flea-alert-banner button { background: #A32D2D; color: #fff; }
+    .flea-sheet { background: #1e1e1c; }
+    .flea-sheet-sub { color: #888; }
+    .flea-cancel-btn { background: #2a2a28; color: #f0ede6; }
+    .boarding-sheet { background: #1e1e1c; }
+    .boarding-sheet-sub { color: #888; }
+    .boarding-row label { color: #888; }
+    .boarding-input { background: #2a2a28; border-color: #3a3a38; color: #f0ede6; }
+    .boarding-end-btn { background: #2a2a28; color: #f0ede6; }
+    .boarding-cancel-btn { color: #888; }
   }
 </style>
 </head>
@@ -93,20 +150,49 @@
     <span>🔔 Enable notifications for Iris reminders</span>
     <button onclick="enableNotifications()">Enable</button>
   </div>
+
+  <!-- Boarding banner: shows only when Iris is currently away -->
+  <div id="boarding-banner" style="display:none">
+    <span id="boarding-banner-text">🐕 Iris is boarded</span>
+    <button onclick="endBoardingNow()">I'm back</button>
+    <button onclick="openBoardingSheet()" style="background:none;border:none;cursor:pointer;padding:4px 6px;flex-shrink:0;line-height:1;font-size:18px;color:#1D4ED8">⋮</button>
+  </div>
+
+  <!-- Flea alert: shows only when due soon or overdue -->
+  <div id="flea-alert-banner" style="display:none">
+    <span id="flea-alert-text">💊 Flea med overdue</span>
+    <button onclick="openFleaSheet()">Given now</button>
+  </div>
+
+  <!-- Flea info banner: hidden by default, only shown via more menu -->
+  <div id="flea-banner" style="display:none">
+    <span id="flea-banner-text">💊 Last flea med: —</span>
+    <button onclick="openFleaSheet()">Log</button>
+  </div>
+
   <div class="nav">
     <button id="btn-back" onclick="goBack()">‹</button>
     <div class="nav-label">
       <div class="day" id="day-label">Today</div>
       <div class="count" id="day-count">Loading…</div>
     </div>
-    <button id="btn-fwd" onclick="goForward()" disabled>›</button>
+    <div style="display:flex;align-items:center;gap:2px">
+      <button onclick="openMoreSheet()" title="More options" class="more-btn">
+        <span class="more-dot"></span>
+        <span class="more-dot"></span>
+        <span class="more-dot"></span>
+      </button>
+      <button id="btn-fwd" onclick="goForward()" disabled>›</button>
+    </div>
   </div>
   <div class="actions" id="actions"></div>
   <div id="timeline"></div>
 </div>
 
+<!-- overlays -->
 <div class="sheet-overlay" id="overlay" onclick="closeAll()"></div>
 
+<!-- event action sheet -->
 <div class="sheet" id="action-sheet">
   <div id="sheet-header"></div>
   <button class="sheet-btn sheet-btn-edit" onclick="openEditSheet()">Edit time</button>
@@ -114,6 +200,7 @@
   <button class="sheet-btn sheet-btn-cancel" onclick="closeAll()">Cancel</button>
 </div>
 
+<!-- event edit time sheet -->
 <div class="edit-sheet" id="edit-sheet">
   <div style="font-size:16px;font-weight:500;padding:0 0 8px">Edit time</div>
   <div class="edit-inputs">
@@ -129,6 +216,39 @@
     <button class="edit-btn-cancel" onclick="closeAll()">Cancel</button>
     <button class="edit-btn-save" onclick="saveEdit()">Save</button>
   </div>
+</div>
+
+<!-- flea sheet -->
+<div class="flea-sheet" id="flea-sheet">
+  <div class="flea-sheet-title">💊 Flea medication</div>
+  <div class="flea-sheet-sub" id="flea-sheet-sub">Log today's dose to set the next reminder.</div>
+  <button class="flea-log-btn" onclick="logFleaMed()">Given now</button>
+  <button class="flea-cancel-btn" onclick="closeAll()">Cancel</button>
+</div>
+
+<!-- boarding sheet -->
+<div class="boarding-sheet" id="boarding-sheet">
+  <div class="boarding-sheet-title">🏨 Boarding / away</div>
+  <div class="boarding-sheet-sub">While Iris is away, pee &amp; poop alerts are paused.</div>
+  <div class="boarding-row">
+    <label>Drop-off</label>
+    <input class="boarding-input" type="datetime-local" id="boarding-start" />
+  </div>
+  <div class="boarding-row">
+    <label>Pick-up</label>
+    <input class="boarding-input" type="datetime-local" id="boarding-end" />
+  </div>
+  <button class="boarding-save-btn" onclick="saveBoarding()">Save</button>
+  <button class="boarding-end-btn" id="boarding-end-btn" onclick="endBoardingNow()" style="display:none">She's back home now</button>
+  <button class="boarding-cancel-btn" onclick="closeAll()">Cancel</button>
+</div>
+
+<!-- More options sheet -->
+<div class="sheet-overlay" id="more-overlay" onclick="closeAll()"></div>
+<div class="sheet" id="more-sheet">
+  <button class="sheet-btn sheet-btn-edit" onclick="closeAll();openFleaSheet()">💊 Flea medication</button>
+  <button class="sheet-btn sheet-btn-edit" onclick="closeAll();openBoardingSheet()">🏨 Boarding / away</button>
+  <button class="sheet-btn sheet-btn-cancel" onclick="closeAll()">Cancel</button>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -154,6 +274,190 @@ var TIME_BLOCKS = [
 
 var events = [], daysAgo = 0, activeIds = [];
 
+// ── Flea med: stored in localStorage ──────────────────────────────
+var FLEA_KEY = "iris_flea_last";
+
+function getFleaData() {
+  try { return JSON.parse(localStorage.getItem(FLEA_KEY) || "null"); } catch(e) { return null; }
+}
+function saveFleaData(ts) {
+  try { localStorage.setItem(FLEA_KEY, JSON.stringify({ ts: ts })); } catch(e) {}
+}
+
+// ── Boarding: stored in Supabase ──────────────────────────────────
+var boardingCache = null; // { id, start, end } or null
+
+function fetchBoarding() {
+  return fetch(SUPABASE_URL + "/rest/v1/boarding?select=*&order=start.desc&limit=1", {
+    headers: { apikey: SUPABASE_KEY, Authorization: "Bearer " + SUPABASE_KEY, Accept: "application/json" }
+  }).then(function(r) { return r.json(); }).then(function(rows) {
+    var now = Date.now();
+    var active = rows.filter(function(r) { return new Date(r.start).getTime() <= now && new Date(r.end).getTime() > now; });
+    boardingCache = active.length ? { id: active[0].id, start: new Date(active[0].start).getTime(), end: new Date(active[0].end).getTime() } : null;
+    updateBoardingBanner();
+    render();
+  }).catch(function() {});
+}
+
+function saveBoardingToSupabase(startTs, endTs) {
+  var body = JSON.stringify({ start: new Date(startTs).toISOString(), end: new Date(endTs).toISOString() });
+  if (boardingCache && boardingCache.id) {
+    return fetch(SUPABASE_URL + "/rest/v1/boarding?id=eq." + boardingCache.id, {
+      method: "PATCH",
+      headers: { apikey: SUPABASE_KEY, Authorization: "Bearer " + SUPABASE_KEY, "Content-Type": "application/json" },
+      body: body
+    });
+  }
+  return fetch(SUPABASE_URL + "/rest/v1/boarding", {
+    method: "POST",
+    headers: { apikey: SUPABASE_KEY, Authorization: "Bearer " + SUPABASE_KEY, "Content-Type": "application/json" },
+    body: body
+  });
+}
+
+function endBoardingInSupabase() {
+  if (!boardingCache || !boardingCache.id) return Promise.resolve();
+  return fetch(SUPABASE_URL + "/rest/v1/boarding?id=eq." + boardingCache.id, {
+    method: "PATCH",
+    headers: { apikey: SUPABASE_KEY, Authorization: "Bearer " + SUPABASE_KEY, "Content-Type": "application/json" },
+    body: JSON.stringify({ end: new Date().toISOString() })
+  });
+}
+
+function isCurrentlyBoarding() {
+  if (!boardingCache) return false;
+  var now = Date.now();
+  return now >= boardingCache.start && now < boardingCache.end;
+}
+
+function boardingCoversToday() {
+  return isCurrentlyBoarding();
+}
+
+// ── Flea banners ──────────────────────────────────────────────────
+function updateFleaBanners() {
+  var data = getFleaData();
+  var alertEl = document.getElementById("flea-alert-banner");
+  var infoEl = document.getElementById("flea-banner");
+  var alertText = document.getElementById("flea-alert-text");
+  var infoText = document.getElementById("flea-banner-text");
+
+  infoEl.style.display = "none";
+
+  if (!data) {
+    alertEl.style.display = "none";
+    return;
+  }
+
+  var daysSince = (Date.now() - data.ts) / 86400000;
+  var daysUntilDue = 30 - daysSince;
+  var lastDate = new Date(data.ts).toLocaleDateString("en-US", { month:"short", day:"numeric" });
+
+  if (daysUntilDue <= 0) {
+    alertEl.style.display = "flex";
+    var overdueDays = Math.floor(-daysUntilDue);
+    alertText.textContent = overdueDays === 0
+      ? "💊 Iris needs her flea med today!"
+      : "⚠️ Flea med overdue by " + overdueDays + (overdueDays === 1 ? " day" : " days") + " (last: " + lastDate + ")";
+  } else {
+    alertEl.style.display = "none";
+  }
+}
+
+// ── Boarding banner ───────────────────────────────────────────────
+function updateBoardingBanner() {
+  var el = document.getElementById("boarding-banner");
+  if (!boardingCache) { el.style.display = "none"; return; }
+  el.style.display = "flex";
+}
+
+// ── Flea sheet ────────────────────────────────────────────────────
+function openFleaSheet() {
+  var data = getFleaData();
+  var sub = document.getElementById("flea-sheet-sub");
+  if (data) {
+    var lastDate = new Date(data.ts).toLocaleDateString("en-US", { month:"long", day:"numeric", year:"numeric" });
+    var nextDate = new Date(data.ts + 30 * 86400000).toLocaleDateString("en-US", { month:"long", day:"numeric", year:"numeric" });
+    var daysSince = Math.floor((Date.now() - data.ts) / 86400000);
+    sub.textContent = "Last given " + lastDate + " (" + daysSince + " days ago). Next due: " + nextDate + ".";
+  } else {
+    sub.textContent = "Log today's dose to set the 30-day reminder.";
+  }
+  document.getElementById("overlay").style.display = "block";
+  document.getElementById("flea-sheet").classList.add("open");
+}
+
+function logFleaMed() {
+  saveFleaData(Date.now());
+  closeAll();
+  updateFleaBanners();
+  scheduleFlеaNotif();
+  fetch(SUPABASE_URL + "/rest/v1/events", {
+    method: "POST",
+    headers: { apikey: SUPABASE_KEY, Authorization: "Bearer " + SUPABASE_KEY, "Content-Type": "application/json", Prefer: "return=representation" },
+    body: JSON.stringify({ action: "flea" })
+  }).then(function(r) { return r.json(); }).then(function(data) {
+    if (data[0]) { events.push(data[0]); render(); }
+  });
+  showToast("💊 Flea med logged!");
+}
+
+function scheduleFlеaNotif() {
+  if (!("Notification" in window) || Notification.permission !== "granted") return;
+}
+
+// ── Boarding sheet ────────────────────────────────────────────────
+function openMoreSheet() {
+  closeAll();
+  document.getElementById("more-overlay").style.display = "block";
+  document.getElementById("more-sheet").classList.add("open");
+}
+
+function openBoardingSheet() {
+  var now = new Date();
+  var fmt = function(d) {
+    var pad = function(n) { return String(n).padStart(2,"0"); };
+    return d.getFullYear() + "-" + pad(d.getMonth()+1) + "-" + pad(d.getDate()) + "T" + pad(d.getHours()) + ":" + pad(d.getMinutes());
+  };
+  if (boardingCache) {
+    document.getElementById("boarding-start").value = fmt(new Date(boardingCache.start));
+    document.getElementById("boarding-end").value = fmt(new Date(boardingCache.end));
+    document.getElementById("boarding-end-btn").style.display = isCurrentlyBoarding() ? "block" : "none";
+  } else {
+    document.getElementById("boarding-start").value = fmt(now);
+    document.getElementById("boarding-end").value = fmt(new Date(now.getTime() + 3 * 86400000));
+    document.getElementById("boarding-end-btn").style.display = "none";
+  }
+  document.getElementById("overlay").style.display = "block";
+  document.getElementById("boarding-sheet").classList.add("open");
+}
+
+function saveBoarding() {
+  var startVal = document.getElementById("boarding-start").value;
+  var endVal = document.getElementById("boarding-end").value;
+  if (!startVal || !endVal) { showToast("Please fill in both dates"); return; }
+  var start = new Date(startVal).getTime();
+  var end = new Date(endVal).getTime();
+  if (end <= start) { showToast("Pick-up must be after drop-off"); return; }
+  boardingCache = { id: boardingCache ? boardingCache.id : null, start: start, end: end };
+  saveBoardingToSupabase(start, end).then(function() { fetchBoarding(); });
+  closeAll();
+  updateBoardingBanner();
+  render();
+  showToast("🐕 Boarding saved");
+}
+
+function endBoardingNow() {
+  endBoardingInSupabase().then(function() {
+    boardingCache = null;
+    updateBoardingBanner();
+    render();
+  });
+  closeAll();
+  showToast("Welcome home, Iris! 🐾");
+}
+
+// ── Core app ──────────────────────────────────────────────────────
 function dateKey(n) {
   var d = new Date(); d.setDate(d.getDate() - n);
   return d.toLocaleDateString("en-CA");
@@ -193,6 +497,7 @@ function buildRows(evts) {
 
 function lastSince(actionId, allToday) {
   if (daysAgo !== 0) return null;
+  if ((actionId === "peed" || actionId === "pooped") && boardingCoversToday()) return null;
   var matches = allToday.filter(function(e) { return e.action === actionId; });
   if (!matches.length) return null;
   var last = matches[matches.length - 1];
@@ -202,8 +507,8 @@ function lastSince(actionId, allToday) {
   var label = h === 0 ? m + "m ago" : m === 0 ? h + "h ago" : h + "h " + m + "m ago";
   var hour = new Date().getHours();
   var firstPeePoop = allToday.find(function(e) { return e.action === "peed" || e.action === "pooped"; });
-  var threshold = actionId === "pooped" ? 8 : 4; 
- var alert = (actionId === "peed" || actionId === "pooped") && !!firstPeePoop && ms > threshold * 3600000 && hour < 23;
+  var threshold = actionId === "pooped" ? 8 : 4;
+  var alert = (actionId === "peed" || actionId === "pooped") && !!firstPeePoop && ms > threshold * 3600000 && hour < 23;
   return { label: label, alert: alert };
 }
 
@@ -237,12 +542,8 @@ function logAction(actionId) {
     headers: { apikey: SUPABASE_KEY, Authorization: "Bearer " + SUPABASE_KEY, "Content-Type": "application/json", Prefer: "return=representation" },
     body: JSON.stringify({ action: actionId })
   }).then(function(r) { return r.json(); }).then(function(data) {
-    if (data[0]) { events.push(data[0]); render(); notifyAction(actionId); }
+    if (data[0]) { events.push(data[0]); render(); }
   });
-}
-
-function notifyAction(actionId) {
-  // notifications handled by database webhook
 }
 
 function deleteActive() {
@@ -269,7 +570,7 @@ function showToast(msg) {
   var el = document.getElementById("toast");
   el.textContent = msg;
   el.style.display = "block";
-  setTimeout(function() { el.style.display = "none"; }, 1500);
+  setTimeout(function() { el.style.display = "none"; }, 2000);
 }
 
 function openSheet(ids) {
@@ -282,7 +583,7 @@ function openSheet(ids) {
     return '<span class="event-icon" style="background:' + (a && a.bg) + '">' + (a && a.emoji) + '</span>';
   }).join("");
   var isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  var darkColors = { fed: "#f0b84a", peed: "#5da8e8", pooped: "#7dc44a" };
+  var darkColors = { fed: "#f0b84a", peed: "#5da8e8", pooped: "#7dc44a", flea: "#c084fc" };
   var labelsHtml = ids.map(function(id, i) {
     var ev = null; for (var j = 0; j < events.length; j++) { if (events[j].id === id) { ev = events[j]; break; } }
     var a = ev && actionMap[ev.action];
@@ -290,7 +591,7 @@ function openSheet(ids) {
     return (i > 0 ? '<span class="dark-plus">+</span>' : '') + '<span style="color:' + color + ';font-weight:500">' + (a && a.label) + '</span>';
   }).join("");
   document.getElementById("sheet-header").innerHTML =
-    '<div style="display:flex;align-items:center;gap:10px;padding:0 16px 10px;border-bottom:0.5px solid ' + (window.matchMedia('(prefers-color-scheme: dark)').matches ? '#333' : '#f0f0f0') + ';margin-bottom:4px">' +
+    '<div style="display:flex;align-items:center;gap:10px;padding:0 16px 10px;border-bottom:0.5px solid ' + (isDark ? '#333' : '#f0f0f0') + ';margin-bottom:4px">' +
     '<div style="display:flex;gap:4px">' + iconsHtml + '</div>' +
     '<span style="flex:1;font-size:14px;display:flex;align-items:center">' + labelsHtml + '</span>' +
     '<span style="font-size:12px;color:#555">' + fmtTime(e.created_at) + '</span></div>';
@@ -300,8 +601,12 @@ function openSheet(ids) {
 
 function closeAll() {
   document.getElementById("overlay").style.display = "none";
+  document.getElementById("more-overlay").style.display = "none";
   document.getElementById("action-sheet").classList.remove("open");
   document.getElementById("edit-sheet").classList.remove("open");
+  document.getElementById("flea-sheet").classList.remove("open");
+  document.getElementById("boarding-sheet").classList.remove("open");
+  document.getElementById("more-sheet").classList.remove("open");
 }
 
 function openEditSheet() {
@@ -350,18 +655,27 @@ function render() {
   document.getElementById("btn-back").disabled = daysAgo >= 6;
   document.getElementById("btn-fwd").disabled = daysAgo <= 0;
 
+  var boarding = boardingCoversToday() && daysAgo === 0;
+
   document.getElementById("actions").innerHTML = ACTIONS.map(function(a) {
     var since = lastSince(a.id, allToday);
     var alert = (since && since.alert) || (a.id === "fed" && fedAlert(allToday));
     var bg = alert ? "#FCEBEB" : a.bg;
     var border = alert ? "2px solid #E24B4A" : "1.5px solid " + a.border;
     var color = alert ? "#A32D2D" : a.color;
-    var subText = since ? ((alert ? "⚠️ " : "") + since.label) : (a.id === "fed" && fedAlert(allToday) ? "⚠️ dinner?" : "");
+    var subText = "";
+    if (boarding && (a.id === "peed" || a.id === "pooped" || a.id === "fed")) {
+      subText = '<span style="font-size:10px;color:' + a.color + '">🐕 away</span>';
+    } else if (since) {
+      subText = '<span style="font-size:10px;color:' + color + '">' + (alert ? "⚠️ " : "") + since.label + '</span>';
+    } else if (a.id === "fed" && fedAlert(allToday)) {
+      subText = '<span style="font-size:10px;color:' + color + '">⚠️ dinner?</span>';
+    }
     return '<button class="action-btn" onclick="logAction(\'' + a.id + '\')">' +
       '<div style="background:' + bg + ';border:' + border + ';border-radius:12px;width:110px;height:110px;display:flex;flex-direction:column;align-items:center;justify-content:space-evenly;margin:0 auto;padding:10px 0">' +
       '<span style="font-size:26px">' + a.emoji + '</span>' +
       '<span style="font-size:12px;font-weight:500;color:' + color + '">' + counts[a.id] + '</span>' +
-      (subText ? '<span style="font-size:10px;color:' + color + '">' + subText + '</span>' : '') +
+      subText +
       '</div></button>';
   }).join("");
 
@@ -374,7 +688,7 @@ function render() {
     if (!blockEvts.length) return;
     var rows = buildRows(blockEvts);
     if (!rows.length) return;
-    html += '<div style="display:flex;align-items:center;gap:8px;padding:12px 0 6px"><span class="block-label" style="font-size:14px;font-weight:600;white-space:nowrap">' + block.label + '</span><div class="block-line" style="flex:1;height:0.5px;"></div></div>';
+    html += '<div style="display:flex;align-items:center;gap:8px;padding:12px 0 6px"><span class="block-label">' + block.label + '</span><div class="block-line"></div></div>';
     rows.forEach(function(row) {
       var ids = row.map(function(e) { return e.id; });
       var idsStr = ids.map(function(id) { return "'" + id + "'"; }).join(",");
@@ -495,8 +809,8 @@ function initPushSilent() {
 }
 
 checkNotifBanner();
-
-
+updateFleaBanners();
+fetchBoarding();
 </script>
 </body>
 </html>
